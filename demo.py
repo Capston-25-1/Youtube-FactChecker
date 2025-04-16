@@ -8,6 +8,11 @@ import torch
 from sentence_transformers import SentenceTransformer, util
 import google.generativeai as genai
 
+import requests
+from bs4 import BeautifulSoup
+from urllib.parse import urlencode
+from newspaper import Article
+
 # nltk punkt tokenizer (최초 한 번 실행)
 nltk.download('punkt')
 
@@ -40,6 +45,48 @@ def extract_keywords(comment_text):
         return []
 
 # 2. 기사 크롤링
+def scrape_article(keyword: str, pages: int = 1):
+    base_url = "https://www.google.com/search"
+    params = {"q": keyword, "tbm": "nws"}
+    query = urlencode(params)
+    var_query = "&start={}"
+    query_url = base_url + f"?{query}" + var_query
+
+    # URL 리스트 생성
+    urls = [query_url.format(start) for start in range(0, pages * 10, 10)]
+
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/122.0.0.0 Safari/537.36"
+        )
+    }
+
+    result = []
+
+    for i, url in enumerate(urls):
+        response = requests.get(url, headers=headers)
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        for item in soup.select("div[data-news-doc-id]"):
+            a_tag = item.select_one("a[href]")
+            title_div = a_tag.select_one("div[role='heading'][aria-level='3']") if a_tag else None
+            if a_tag and title_div:
+                title = title_div.get_text(strip=True)
+                link = a_tag["href"]
+
+                try:
+                    article = Article(link, language='ko')
+                    article.download()
+                    article.parse()
+                    body = article.text.strip()
+                    result.append((title, link, body))
+                except Exception as e:
+                    print(f"본문 추출 실패: {link}\n→ {e}")
+                    continue
+# [(제목1,링크1,본문1), (제목2,링크2,본문2)...]
+    return result
 
 # 3. 기사 내 유사 문장 추출 (SentenceTransformer 활용)
 def extract_similar_sentences(article_text, comment, top_k=3):
@@ -104,6 +151,7 @@ async def main():
     여러 공식 매체와 경제 전문가는 미국의 관세 정책이 중국 경제에 미치는 영향을 면밀히 분석 중이다.
     또한, 일부 국제 뉴스에서는 중국 기업들이 해외 시장으로의 진출을 활발히 추진하고 있다는 보도가 이어지고 있다.
     """
+    
     
     # 3. 기사에서 유사 문장 추출
     similar_sentences = extract_similar_sentences(article_text, comment, top_k=3)
