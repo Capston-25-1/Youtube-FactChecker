@@ -1,0 +1,31 @@
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+@app.route('/analyze', methods=['POST'])
+def analyze_video():
+    data = request.get_json()
+
+    # 입력 데이터 추출
+    video_url = data.get('video_url')
+    video_title = data.get('video_title')
+    comment = data.get('comment')
+
+    # 예시 처리 로직 (실제 처리는 여기에 추가)
+    fact_result = 0.85  # 진실 여부 확률 (예시)
+    explaination = f"'{comment}'에 대한 팩트체크 결과입니다. 신뢰도가 {fact_result * 100:.1f}%입니다."
+    related_articles = [
+        {"title": "팩트체크 기사 1", "link": "https://example.com/article1"},
+        {"title": "팩트체크 기사 2", "link": "https://example.com/article2"},
+    ]
+
+    response = {
+        "fact_result": fact_result,
+        "explaination": explaination,
+        "related_articles": related_articles
+    }
+
+    return jsonify(response)
+
+if __name__ == '__main__':
+    app.run(debug=True)
