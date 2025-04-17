@@ -7,7 +7,7 @@ embedding_model = SentenceTransformer(
     "snunlp/KR-SBERT-V40K-klueNLI-augSTS", device="cpu"
 )
 # NLI 파이프라인 생성
-nli_pipeline = pipeline("text-classification", model="roberta-large-mnli")
+nli_pipeline = pipeline("text-classification", model="roberta-large-mnli", truncation=True, max_length=512)
 
 
 def find_top_k_answers_regex(query, text, k=3):
