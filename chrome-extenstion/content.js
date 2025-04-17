@@ -7,16 +7,56 @@ function addApiCallButton() {
         // 이미 버튼이 추가되어 있으면 중복 방지
         if (commentThread.querySelector(".api-call-button")) return;
 
+        // Google Fonts 적용
+        const fontLink = document.createElement("link");
+        const fontName = "Jua";
+        const fontQuery = fontName.replace(/ /g, "+");
+        fontLink.href = `https://fonts.googleapis.com/css2?family=${fontQuery}&display=swap`; //Do+Hyeon
+        fontLink.rel = "stylesheet";
+        document.head.appendChild(fontLink);
+
         // API 호출 버튼 생성
         const apiButton = document.createElement("button");
-        apiButton.textContent = "API 호출";
+        apiButton.textContent = "팩트체크!";
         apiButton.className = "api-call-button";
-        apiButton.style.marginLeft = "8px";
-        apiButton.style.padding = "4px 8px";
-        apiButton.style.backgroundColor = "#f0f0f0";
-        apiButton.style.border = "1px solid #ccc";
-        apiButton.style.borderRadius = "4px";
-        apiButton.style.cursor = "pointer";
+
+        // apiButton.style.marginLeft = "8px";
+        // apiButton.style.padding = "4px 8px";
+        // apiButton.style.backgroundColor = "#f0f0f0";
+        // apiButton.style.border = "1px solid #ccc";
+        // apiButton.style.borderRadius = "999px";
+        // apiButton.style.cursor = "pointer";
+        // apiButton.style.fontFamily =`"${fontName}", sans-serif`  // "'Do Hyeon', sans-serif"
+        // apiButton.style.fontSize = "15px";
+
+        // CSS 설정
+
+        // 분홍+하늘 linear-gradient(135deg, #f8bbd0, #bbdefb); h:linear-gradient(135deg, #f48fb1, #90caf9)
+        // 파랑 linear-gradient(135deg, #4dd0e1, #1976d2); h:linear-gradient(135deg, #f48fb1, #90caf9)
+        // 라임 → 중녹색 linear-gradient(135deg, #aed581, #7cb342); h:linear-gradient(135deg, #9ccc65, #558b2f);
+        // 검회색 linear-gradient(135deg, #90a4ae, #546e7a); h:linear-gradient(135deg, #78909c, #37474f);
+
+        const style = document.createElement("style");
+        style.textContent = `
+        .api-call-button {
+          padding: 6px 12px;
+          margin-left: 8px;
+          border: none;
+          border-radius: 999px;
+          background: linear-gradient(135deg, #90a4ae, #546e7a);
+          color: #dd2121;
+          font-size: 15px;
+          font-family: "${fontName}", sans-serif;
+          cursor: pointer;
+          transition: background 0.3s ease, transform 0.2s ease;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .api-call-button:hover {
+          background: linear-gradient(135deg, #78909c, #37474f);
+          transform: scale(1.10);
+        }
+      `;
+        document.head.appendChild(style);        
 
         // 기존 작성자+시간 영역 뒤에 추가
         const header = commentThread.querySelector("#header-author");
