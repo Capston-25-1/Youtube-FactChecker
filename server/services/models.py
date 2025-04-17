@@ -45,9 +45,9 @@ def find_top_k_answers_regex(query, text, k=3):
     top_k_scores = []
     for sentence_score in top_k_sentences_with_scores:
         top_k_scores.append(sentence_score[1])
-    print("[modles.py]:", top_k_sentences_with_scores)
+    print("[models.py]:", top_k_sentences_with_scores)
     print(
-        "[modles.py]: found",
+        "[models.py]: found",
         len(top_k_sentences_with_scores),
         "sentences with",
         top_k_scores,
