@@ -5,9 +5,13 @@ from services.collecter import collect_data
 
 def analyze_comment(comment):
     print("[factchecker.py]: analyzing comment\n", comment)
-    keyword = extract_keywords(comment)
-    print("[factchecker.py]: extracted keyword\n", keyword)
-    articles = collect_data(keyword)
+    num_keywords = 6
+    articles = []
+    while not articles and num_keywords > 0:
+        keyword = extract_keywords(comment, num_keywords)
+        print("[factchecker.py]: extracted keyword\n", keyword)
+        articles = collect_data(keyword)
+        num_keywords -= 1
 
     core_sentences = []
     core_sentences_en = []

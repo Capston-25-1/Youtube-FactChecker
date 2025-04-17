@@ -15,9 +15,9 @@ model_gemini = genai.GenerativeModel(model_name="gemini-2.0-flash-lite")
 GOOGLE_API_KEY = os.getenv("GOOGLE_TRANSLATE_API_KEY")
 
 
-def extract_keywords(comment_text):
+def extract_keywords(comment_text:str, num_keywords:int):
     prompt = f"""
-다음 댓글에서 핵심 키워드 3개만 추출해줘.
+다음 댓글에서 핵심 키워드 {num_keywords}개만 추출해줘.
 댓글: "{comment_text}"
 응답은 반드시 JSON 형식으로만 작성해줘. 예시:
 {{
@@ -83,8 +83,10 @@ def scrape_article(keyword: list[str], pages: int = 1):
     for i, url in enumerate(urls):
         response = requests.get(url, headers=headers)
         soup = BeautifulSoup(response.text, "html.parser")
-
-        for item in soup.select("div[data-news-doc-id]"):
+        article = soup.select("div[data-news-doc-id]")
+        if not article:
+            return []
+        for item in article:
             a_tag = item.select_one("a[href]")
             title_div = a_tag.select_one("div[role='heading'][aria-level='3']") if a_tag else None
             if a_tag and title_div:
