@@ -16,7 +16,7 @@ def analyze_comment(comment):
     core_sentences = []
     core_sentences_en = []
 
-    print("[factchecker.py]: searching realted sentences and translating")
+    print("[factchecker.py]: searching related sentences and translating")
     for article in articles:
         sentences = find_top_k_answers_regex(comment, article[2])
         for sentence, _ in sentences:
