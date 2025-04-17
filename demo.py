@@ -45,8 +45,9 @@ def extract_keywords(comment_text):
         return []
 
 # 2. 기사 크롤링
-def scrape_article(keyword: str, pages: int = 1):
+def scrape_article(keyword: list[str], pages: int = 1):
     base_url = "https://www.google.com/search"
+    keyword = " ".join(keyword)
     params = {"q": keyword, "tbm": "nws"}
     query = urlencode(params)
     var_query = "&start={}"
