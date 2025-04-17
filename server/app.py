@@ -18,12 +18,11 @@ def analyze_video():
     video_title = data.get("video_title")
     comment = data.get("comment")
 
-    fact_result = analyze_comment(comment)
+    fact_result,article_info = analyze_comment(comment)
 
     explaination = f"'{comment}'에 대한 팩트체크 결과입니다. 신뢰도가 {fact_result * 100:.1f}%입니다."
     related_articles = [
-        {"title": "팩트체크 기사 1", "link": "https://example.com/article1"},
-        {"title": "팩트체크 기사 2", "link": "https://example.com/article2"},
+        {"title": article_info[0], "link": article_info[1]},
     ]
 
     response = {
@@ -36,4 +35,4 @@ def analyze_video():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host = "0.0.0.0",debug=True)

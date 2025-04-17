@@ -36,16 +36,44 @@ function addApiCallButton() {
             apiButton.remove();
 
             // API 호출 및 결과 처리
-            const factResult = await callYourAPI(commentText);
+            const apiResponse = await callYourAPI(commentText);
 
-            if (factResult !== null) {
-                // 결과 표시할 엘리먼트 생성
-                const resultSpan = document.createElement("span");
-                resultSpan.textContent = `Fact Result: ${factResult}`;
-                resultSpan.style.marginLeft = "8px";
-                resultSpan.style.color = "blue";
-                resultSpan.style.fontWeight = "bold";
-                header.appendChild(resultSpan);
+            if (apiResponse !== null) {
+                const factResult = apiResponse.fact_result;
+                const relatedArticles = apiResponse.related_articles;
+
+                // 결과 표시 영역 생성 또는 찾기
+                let resultContainer = commentThread.querySelector(".api-result-container");
+                if (!resultContainer) {
+                    resultContainer = document.createElement("div");
+                    resultContainer.className = "api-result-container";
+                    resultContainer.style.marginLeft = "8px";
+                    header.appendChild(resultContainer);
+                } else {
+                    // 이미 결과가 있으면 초기화
+                    resultContainer.innerHTML = "";
+                }
+
+                // Fact Result 표시
+                const factSpan = document.createElement("span");
+                factSpan.textContent = `Fact Result: ${(factResult * 100).toFixed(1)}%`;
+                factSpan.style.color = "blue";
+                factSpan.style.fontWeight = "bold";
+                resultContainer.appendChild(factSpan);
+
+                // 관련 기사 표시
+                if (relatedArticles && relatedArticles.length > 0) {
+                    relatedArticles.forEach(article => {
+                        const articleLink = document.createElement("a");
+                        articleLink.textContent = article.title;
+                        articleLink.href = article.link;
+                        articleLink.target = "_blank"; // 새 탭에서 열기
+                        articleLink.style.marginLeft = "8px";
+                        articleLink.style.color = "green";
+                        articleLink.style.fontWeight = "bold";
+                        resultContainer.appendChild(articleLink);
+                    });
+                }
             }
         });
     });
@@ -81,7 +109,7 @@ async function callYourAPI(commentText) {
         }
 
         const data = await response.json();
-        return data.fact_result; // "fact_result" 값 반환
+        return data; // 전체 API 응답 객체 반환
     } catch (error) {
         console.error("API 호출 오류:", error);
         return null;

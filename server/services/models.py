@@ -22,7 +22,6 @@ def find_top_k_answers_regex(query, text, k=3):
     Returns:
         list[tuple]: A list of tuples, each containing a sentence and its similarity score, ordered by similarity in descending order.
     """
-
     # 문장 분리 (마침표, 물음표, 느낌표 기준으로 분리)
     sentences = re.split(r"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\!)\s", text)
 
@@ -77,7 +76,6 @@ def analyze_claim_with_evidences(claim, evidences):
         # 결과는 label과 score가 포함된 리스트 (보통 첫 번째가 가장 높은 점수)
         label = output[0]["label"]
         score = output[0]["score"]
-
         results.append(
             {
                 "evidence": evidence,
