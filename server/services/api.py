@@ -3,39 +3,108 @@ import re
 import json
 import os
 import requests
-
-import requests
+import textwrap
 from bs4 import BeautifulSoup
 from urllib.parse import urlencode
 from newspaper import Article
+from google.api_core.exceptions import ResourceExhausted
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model_gemini = genai.GenerativeModel(model_name="gemini-2.0-flash-lite")
+model_gemini = genai.GenerativeModel(model_name="gemini-1.5-pro-latest")
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_TRANSLATE_API_KEY")
 
+def extract_keywords_batch_llm(comments, video_ctx, n=6):
+    title = video_ctx.get("title", "")
+    desc  = video_ctx.get("description", "")
+    hashtags = ", ".join(video_ctx.get("hashtags", []))
 
-def extract_keywords(comment_text:str, num_keywords:int):
+    comment_block = "\n".join(
+        f"{i}. \"{c.strip()}\"" for i, c in enumerate(comments)
+    )
+
+    prompt = textwrap.dedent(f"""
+        다음 YouTube 영상 정보를 참고해 각 댓글별 핵심 키워드(최대 {n}개)만 추출해 줘.
+        기사 검색이 힘든 댓글은 "keywords": [] 로 남겨 둬.
+
+        [영상]
+        - 제목: "{title}"
+        - 설명: "{desc}"
+        - 태그: "{hashtags}"
+
+        [댓글 목록]
+        {comment_block}
+
+        ---- 출력 형식(반드시 JSON 배열만) ----
+        [
+          {{ "index": 0, "keywords": ["...", "..."] }},
+          {{ "index": 1, "keywords": [] }},
+          ...
+        ]
+    """)
+
+    try:
+        resp = model_gemini.generate_content(prompt)
+    except ResourceExhausted:
+        print("[Gemini] quota exceeded → 전체 댓글 키워드 비움")
+        return [{"index": i, "keywords": []} for i in range(len(comments))]
+
+    raw = re.sub(r"```json|```", "", resp.text).strip()
+    try:
+        arr = json.loads(raw)
+        mapping = {d["index"]: d.get("keywords", []) for d in arr if "index" in d}
+        return [
+            {"index": i, "keywords": mapping.get(i, [])}
+            for i in range(len(comments))
+        ]
+    except Exception as e:
+        print("[batch JSON 파싱 실패]", e)
+        return [{"index": i, "keywords": []} for i in range(len(comments))]
+    
+def extract_keywords(
+    comment_text: str,
+    num_keywords: int,
+    video_ctx: dict | None = None          # ★ 추가
+):
+    """
+    video_ctx = {
+        "title": "...",
+        "description": "...",
+        "tags": ["...", ...]
+    }
+    """
+    title        = video_ctx.get("title", "")        if video_ctx else ""
+    description  = video_ctx.get("description", "")  if video_ctx else ""
+    tags         = ", ".join(video_ctx.get("tags", [])) if video_ctx else ""
+
     prompt = f"""
-다음 댓글에서 핵심 키워드 {num_keywords}개만 추출해줘.
+아래 YouTube 영상 정보와 댓글을 참고해서 기사 검색에 유용한 **핵심 키워드 {num_keywords}개**를 추출해.
+- 영상 제목: "{title}"
+- 영상 설명: "{description}"
+- 영상 태그: "{tags}"
+
 댓글: "{comment_text}"
-응답은 반드시 JSON 형식으로만 작성해줘. 예시:
+
+조건:
+1. 키워드는 기사 검색에 용이하게 1~3단어의 명사구(고유명사·사건명) 위주로.
+2. 기사 검색/팩트체크가 거의 불가능한 잡담·감탄문,감정정이면 "keywords"를 빈 배열로 남겨 둬.
+3. **JSON** 외 불필요한 텍스트, ``` 표시 금지.
+4. 댓글만으로 맥락파악이 힘든 경우, 영상 정보를 참고해 키워드 추출해.
+예시 형식:
 {{
   "keywords": ["", "", ""],
   "topic": ""
 }}
-반드시 응답 형식만 반환해
 """
-    response = model_gemini.generate_content(prompt)
-    raw_output = response.text
-    # Markdown 코드 블록 제거
-    cleaned = re.sub(r"```json|```", "", raw_output).strip()
+    response    = model_gemini.generate_content(prompt)
+    raw_output  = response.text
+    cleaned     = re.sub(r"```json|```", "", raw_output).strip()
 
     try:
         data = json.loads(cleaned)
         return data.get("keywords", [])
     except Exception as e:
-        print("[키워드 추출 JSON 파싱 실패]")
+        print("[키워드 추출 JSON 파싱 실패] →", e)
         print("원문:", raw_output)
         return []
 

@@ -1,157 +1,165 @@
-function addApiCallButton() {
-    const commentThreads = document.querySelectorAll(
-        "ytd-comment-thread-renderer"
-    );
+const API_BASE    = "http://localhost:5000";
+const SEEN        = new WeakSet();
+const BUTTONED    = new WeakSet();
+const FLUSH_DELAY = 3000;
+const fontName = "Jua";
 
-    commentThreads.forEach((commentThread, index) => {
-        // 이미 버튼이 추가되어 있으면 중복 방지
-        if (commentThread.querySelector(".api-call-button")) return;
+let queueNodes = [];     // 큐에 쌓인 댓글 노드
+let timerId    = null;   // 디바운스 타이머
 
-        // Google Fonts 적용
-        const fontLink = document.createElement("link");
-        const fontName = "Jua";
-        const fontQuery = fontName.replace(/ /g, "+");
-        fontLink.href = `https://fonts.googleapis.com/css2?family=${fontQuery}&display=swap`; //Do+Hyeon
-        fontLink.rel = "stylesheet";
-        document.head.appendChild(fontLink);
+/** YouTube 영상 메타데이터 (제목·설명·해시태그만) */
+function getVideoContext() {
+  const titleEl = document.querySelector('h1.title yt-formatted-string');
+  const descEl  = document.querySelector('#description');
+  const tagEls  = document.querySelectorAll(
+    '#above-the-fold #description a[href*="/hashtag/"]'
+  );
+  return {
+    title:       titleEl?.innerText?.trim() || "",
+    description: descEl?.innerText?.trim() || "",
+    hashtags:    Array.from(tagEls).map(a => a.innerText.replace('#','').trim())
+  };
+}
 
-        // API 호출 버튼 생성
-        const apiButton = document.createElement("button");
-        apiButton.textContent = "팩트체크!";
-        apiButton.className = "api-call-button";
 
-        // apiButton.style.marginLeft = "8px";
-        // apiButton.style.padding = "4px 8px";
-        // apiButton.style.backgroundColor = "#f0f0f0";
-        // apiButton.style.border = "1px solid #ccc";
-        // apiButton.style.borderRadius = "999px";
-        // apiButton.style.cursor = "pointer";
-        // apiButton.style.fontFamily =`"${fontName}", sans-serif`  // "'Do Hyeon', sans-serif"
-        // apiButton.style.fontSize = "15px";
+/** DOM → 새 댓글 요소 배열(아직 keyword 추출 안 한 것만) */
+function collectFreshComments() {
+  return Array.from(document.querySelectorAll("ytd-comment-thread-renderer"))
+              .filter(node => !SEEN.has(node));
+}
 
-        // CSS 설정
-
-        // 분홍+하늘 linear-gradient(135deg, #f8bbd0, #bbdefb); h:linear-gradient(135deg, #f48fb1, #90caf9)
-        // 파랑 linear-gradient(135deg, #4dd0e1, #1976d2); h:linear-gradient(135deg, #f48fb1, #90caf9)
-        // 라임 → 중녹색 linear-gradient(135deg, #aed581, #7cb342); h:linear-gradient(135deg, #9ccc65, #558b2f);
-        // 검회색 linear-gradient(135deg, #90a4ae, #546e7a); h:linear-gradient(135deg, #78909c, #37474f);
-
-        const style = document.createElement("style");
-        style.textContent = `
-        .api-call-button {
-          padding: 6px 12px;
-          margin-left: 8px;
-          border: none;
-          border-radius: 999px;
-          background: linear-gradient(135deg, #90a4ae, #546e7a);
-          color: #dd2121;
-          font-size: 15px;
-          font-family: "${fontName}", sans-serif;
-          cursor: pointer;
-          transition: background 0.3s ease, transform 0.2s ease;
-          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .api-call-button:hover {
-          background: linear-gradient(135deg, #78909c, #37474f);
-          transform: scale(1.10);
-        }
-      `;
-        document.head.appendChild(style);        
-
-        // 기존 작성자+시간 영역 뒤에 추가
-        const header = commentThread.querySelector("#header-author");
-        if (header) {
-            header.appendChild(apiButton);
-        }
-
-        // 버튼 클릭 이벤트 리스너 추가
-        apiButton.addEventListener("click", async () => {
-            const commentTextElement =
-                commentThread.querySelector("#content-text");
-            const commentText = commentTextElement
-                ? commentTextElement.textContent
-                : "";
-
-            // 버튼 사라지게 하기
-            apiButton.remove();
-
-            // API 호출 및 결과 처리
-            const apiResponse = await callYourAPI(commentText);
-
-            if (apiResponse !== null) {
-                const factResult = apiResponse.fact_result;
-                const relatedArticles = apiResponse.related_articles;
-
-                // 결과 표시 영역 생성 또는 찾기
-                let resultContainer = commentThread.querySelector(".api-result-container");
-                if (!resultContainer) {
-                    resultContainer = document.createElement("div");
-                    resultContainer.className = "api-result-container";
-                    resultContainer.style.marginLeft = "8px";
-                    header.appendChild(resultContainer);
-                } else {
-                    // 이미 결과가 있으면 초기화
-                    resultContainer.innerHTML = "";
-                }
-
-                // Fact Result 표시
-                const factSpan = document.createElement("span");
-                factSpan.textContent = `Fact Result: ${(factResult * 100).toFixed(1)}%`;
-                factSpan.style.color = "blue";
-                factSpan.style.fontWeight = "bold";
-                resultContainer.appendChild(factSpan);
-
-                // 관련 기사 표시
-                if (relatedArticles && relatedArticles.length > 0) {
-                    relatedArticles.forEach(article => {
-                        const articleLink = document.createElement("a");
-                        articleLink.textContent = article.title;
-                        articleLink.href = article.link;
-                        articleLink.target = "_blank"; // 새 탭에서 열기
-                        articleLink.style.marginLeft = "8px";
-                        articleLink.style.color = "green";
-                        articleLink.style.fontWeight = "bold";
-                        resultContainer.appendChild(articleLink);
-                    });
-                }
-            }
-        });
+async function batchExtract(videoCtx, comments) {
+  try {
+    const resp = await fetch(`${API_BASE}/batch_extract`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ videoContext: videoCtx, comments })
     });
+    if (!resp.ok) throw new Error(`status ${resp.status}`);
+    return await resp.json();
+  } catch(e) {
+    console.error("batch_extract 오류:", e);
+    return [];
+  }
 }
 
-// 페이지 변화 감지해서 계속 실행
-const observer = new MutationObserver(() => {
-    addApiCallButton();
-});
+/** 팩트체크 API */
+async function analyze(comment, videoCtx) {
+  const resp = await fetch(`${API_BASE}/analyze`, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ comment, ...videoCtx })
+  });
+  if (!resp.ok) throw new Error(`status ${resp.status}`);
+  return resp.json();
+}
 
-// 처음 실행
-addApiCallButton();
+/** 버튼 스타일 & 폰트 한번만 주입 */
+(function injectAssets(){
+  const link = document.createElement("link");
+  link.rel="stylesheet";
+  link.href=`https://fonts.googleapis.com/css2?family=${fontName.replace(/ /g,"+")}&display=swap`;
+  document.head.appendChild(link);
 
-// 변화 생길 때마다 실행
-observer.observe(document.body, { childList: true, subtree: true });
-
-// API 호출 함수 (async/await 사용)
-async function callYourAPI(commentText) {
-    const apiUrl = "http://localhost:5000/analyze"; // 실제 API 엔드포인트로 변경
-
-    try {
-        const response = await fetch(apiUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ comment: commentText }),
-        });
-
-        if (!response.ok) {
-            console.error(`API error! status: ${response.status}`);
-            return null;
-        }
-
-        const data = await response.json();
-        return data; // 전체 API 응답 객체 반환
-    } catch (error) {
-        console.error("API 호출 오류:", error);
-        return null;
+  const style = document.createElement("style");
+  style.textContent = `
+    .api-call-button{
+      padding:6px 12px;margin-left:8px;border:none;border-radius:999px;
+      background:linear-gradient(135deg,#90a4ae,#546e7a);
+      color:#dd2121;font-size:15px;font-family:"${fontName}",sans-serif;
+      cursor:pointer;transition:background .3s,transform .2s;
+      box-shadow:0 2px 5px rgba(0,0,0,.1)
     }
+    .api-call-button:hover{
+      background:linear-gradient(135deg,#78909c,#37474f);transform:scale(1.10)
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+/** 댓글 노드에 버튼 달기 */
+function attachButton(node, videoCtx, keywords){
+  if (BUTTONED.has(node)) return;
+  const header = node.querySelector("#header-author");
+  if (!header) return;
+
+  const btn = document.createElement("button");
+  btn.className="api-call-button";
+  btn.textContent="팩트체크";
+  btn.addEventListener("click", async ()=>{
+    btn.remove();  // 중복 호출 방지
+    const commentText = node.querySelector("#content-text")?.innerText || "";
+    try{
+      const data = await analyze(commentText, videoCtx);
+      renderResult(node, data);
+    }catch(e){ console.error("analyze 오류:", e); }
+  });
+  header.appendChild(btn);
+  BUTTONED.add(node);
 }
+
+/** 결과 DOM 삽입 */
+function renderResult(node, data){
+  let box = node.querySelector(".api-result-container");
+  if (!box){
+    box = document.createElement("div");
+    box.className="api-result-container"; box.style.marginLeft="8px";
+    node.querySelector("#header-author")?.appendChild(box);
+  } else box.innerHTML="";
+
+  const fact = document.createElement("span");
+  fact.style.color="blue"; fact.style.fontWeight="bold";
+  fact.textContent=`Fact Result: ${(data.fact_result*100).toFixed(1)}%`;
+  box.appendChild(fact);
+
+  (data.related_articles||[]).forEach(a=>{
+    const link = document.createElement("a");
+    link.target="_blank"; link.href=a.link;
+    link.style="margin-left:8px;color:green;font-weight:bold";
+    link.textContent=a.title;
+    box.appendChild(link);
+  });
+}
+
+/** 메인 루프: 새 댓글 발견 → batch keyword 추출 → 버튼 주입 */
+function processNewComments() {
+  const fresh = Array.from(
+    document.querySelectorAll("ytd-comment-thread-renderer")
+  ).filter(n => !SEEN.has(n));
+  if (!fresh.length) return;
+
+  fresh.forEach(node => {
+    SEEN.add(node);
+    queueNodes.push(node);
+  });
+
+  if (timerId) clearTimeout(timerId);
+  timerId = setTimeout(flushQueue, FLUSH_DELAY);
+}
+
+async function flushQueue() {
+  if (!queueNodes.length) return;
+  console.log("flushQueue 호출, 노드 개수:", queueNodes.length);
+
+  const nodes    = queueNodes.splice(0);
+  const comments = nodes.map(n =>
+    n.querySelector("#content-text")?.innerText?.trim() || ""
+  );
+  const videoCtx = getVideoContext();
+
+  try {
+    const results = await batchExtract(videoCtx, comments);
+    results.forEach(({index, keywords}) => {
+      if (keywords && keywords.length) {
+        attachButton(nodes[index], videoCtx, keywords);
+      }
+    });
+  } catch(e) {
+    console.error("flushQueue 오류:", e);
+  }
+}
+
+/** 최초 실행 + MutationObserver */
+processNewComments();
+new MutationObserver(processNewComments)
+  .observe(document.body, {childList:true, subtree:true});

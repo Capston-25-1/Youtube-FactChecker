@@ -1,3 +1,5 @@
+import textwrap, json, re
+from google.api_core.exceptions import ResourceExhausted
 from services.api import extract_keywords, translate_text
 from services.models import find_top_k_answers_regex, analyze_claim_with_evidences
 from services.collecter import collect_data
@@ -58,3 +60,11 @@ def get_max_confidence_article(nli_results):
             max = nli_results[index]["confidence"]
             arg_max = index
     return arg_max//3
+
+def extract_keywords_batch(comments: list[str], n: int = 6):
+    """여러 댓글 → [{index, keywords}]"""
+    output = []
+    for idx, c in enumerate(comments):
+        kws = extract_keywords(c, n)
+        output.append({"index": idx, "keywords": kws})
+    return output
