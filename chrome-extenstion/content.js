@@ -9,16 +9,23 @@ let timerId    = null;   // 디바운스 타이머
 
 /** YouTube 영상 메타데이터 (제목·설명·해시태그만) */
 function getVideoContext() {
-  const titleEl = document.querySelector('h1.title yt-formatted-string');
-  const descEl  = document.querySelector('#description');
-  const tagEls  = document.querySelectorAll(
-    '#above-the-fold #description a[href*="/hashtag/"]'
+  // 1) 제목: og:title 메타 태그
+  const metaTitle = document.querySelector('meta[property="og:title"]');
+  const title = (metaTitle?.content || "").trim();
+
+  // 2) 설명: description 메타 태그
+  const metaDesc  = document.querySelector('meta[name="description"]');
+  const description = (metaDesc?.content || "").trim();
+
+  // 3) 해시태그: 설명창 안의 #링크들
+  const tagEls = document.querySelectorAll(
+    '#description a[href^="/hashtag/"]'
   );
-  return {
-    title:       titleEl?.innerText?.trim() || "",
-    description: descEl?.innerText?.trim() || "",
-    hashtags:    Array.from(tagEls).map(a => a.innerText.replace('#','').trim())
-  };
+  const hashtags = Array.from(tagEls)
+    .map(a => a.innerText.replace(/^#/, "").trim())
+    .filter(t => t);
+
+  return { title, description, hashtags };
 }
 
 
@@ -30,6 +37,8 @@ function collectFreshComments() {
 
 async function batchExtract(videoCtx, comments) {
   try {
+    console.log("📝 [batch_extract payload]:", { videoContext: videoCtx, comments });
+
     const resp = await fetch(`${API_BASE}/batch_extract`, {
       method: "POST",
       headers: {"Content-Type":"application/json"},
@@ -45,6 +54,8 @@ async function batchExtract(videoCtx, comments) {
 
 /** 팩트체크 API */
 async function analyze(comment, videoCtx) {
+  console.log("📝 [analyze payload]:", { comment, ...videoCtx });
+
   const resp = await fetch(`${API_BASE}/analyze`, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
