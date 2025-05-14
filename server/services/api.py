@@ -10,7 +10,7 @@ from newspaper import Article
 from google.api_core.exceptions import ResourceExhausted
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model_gemini = genai.GenerativeModel(model_name="gemini-2.5-pro-exp-03-25")
+model_gemini = genai.GenerativeModel(model_name="gemini-2.0-flash")
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_TRANSLATE_API_KEY")
 
