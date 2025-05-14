@@ -1,13 +1,13 @@
 from services.api import extract_keywords, translate_text
-from server.services.inference import (
+from services.inference import (
     find_top_k_answers_regex,
     analyze_claim_with_evidences,
 )
-from server.services.collector import collect_data
+from services.collector import collect_data
 from dataclasses import dataclass
 from typing import List, Tuple, Dict
 
-from server.tools.log_utils import logger
+from tools.log_utils import logger
 
 
 class Comment:

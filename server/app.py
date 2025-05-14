@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from factchecker import analyze_comment
 from services.api import extract_keywords_batch_llm
-from server.factcheck_engine import CommentFactCheck
+from factcheck_engine import CommentFactCheck
 from dotenv import load_dotenv
 
 load_dotenv()
