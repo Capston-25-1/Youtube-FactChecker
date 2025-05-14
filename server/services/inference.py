@@ -7,7 +7,9 @@ embedding_model = SentenceTransformer(
     "snunlp/KR-SBERT-V40K-klueNLI-augSTS", device="cpu"
 )
 # NLI 파이프라인 생성
-nli_pipeline = pipeline("text-classification", model="roberta-large-mnli", truncation=True, max_length=512)
+nli_pipeline = pipeline(
+    "text-classification", model="roberta-large-mnli", truncation=True, max_length=512
+)
 
 
 def find_top_k_answers_regex(query, text, k=3):
@@ -37,17 +39,22 @@ def find_top_k_answers_regex(query, text, k=3):
     # 유사도와 문장 인덱스를 함께 저장
     sentence_scores = list(zip(sentences, similarities))
 
+    # 유사도 0.5 이상 필터링
+    filtered_sentence_scores = [s for s in sentence_scores if s[1] >= 0.5]
+
     # 유사도 기준으로 내림차순 정렬
-    sentence_scores = sorted(sentence_scores, key=lambda x: x[1], reverse=True)
+    filtered_sentence_scores = sorted(
+        filtered_sentence_scores, key=lambda x: x[1], reverse=True
+    )
 
     # 상위 k개 문장 반환
-    top_k_sentences_with_scores = sentence_scores[:k]
+    top_k_sentences_with_scores = filtered_sentence_scores[:k]
     top_k_scores = []
     for sentence_score in top_k_sentences_with_scores:
         top_k_scores.append(sentence_score[1])
-    print("[models.py]:", top_k_sentences_with_scores)
+    print("[inference.py]:", top_k_sentences_with_scores)
     print(
-        "[models.py]: found",
+        "[inference.py]: found",
         len(top_k_sentences_with_scores),
         "sentences with",
         top_k_scores,

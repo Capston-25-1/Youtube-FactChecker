@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from factchecker import analyze_comment
+
+# from factchecker import analyze_comment
 from services.api import extract_keywords_batch_llm
-from server.factcheck_engine import CommentFactCheck
+from factcheck_engine import CommentFactCheck
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -16,9 +17,6 @@ def analyze():
 
     data = request.get_json()
     comment = data["comment"]
-    video_title = data.get("title", "")
-    video_description = data.get("description", "")
-    video_hashtags = data.get("hashtags", [])
 
     factchecker = CommentFactCheck(comment)
     factchecker.analyze()

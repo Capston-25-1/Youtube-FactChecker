@@ -1,66 +1,67 @@
+from services.data_models import CoreSentence, Claim
 from services.api import extract_keywords, translate_text
-from server.services.inference import (
+from services.inference import (
     find_top_k_answers_regex,
     analyze_claim_with_evidences,
 )
-from server.services.collector import collect_data
-from dataclasses import dataclass
-from typing import List, Tuple, Dict
-
-from server.tools.log_utils import logger
-
-
-class Comment:
-    def __init__(self, comment: str):
-        self.comment = comment
-        self.claims = []
+from services.collector import collect_data
+from tools.log_utils import logger
 
 
 class CommentFactCheck:
     def __init__(self, comment: str):
         self.comment = comment
-        self.comment_en = None
+        self.claims = []
 
-        self.articles = []  # [(title, url, body)]
         self.core_sentences = []
         self.core_sentences_en = []
-
-        self.nli_results = []
-        self.score = None
         self.best_article = None
 
     def analyze(self):
         print("[CommentFactCheck] Analyzing comment...\n", self.comment)
-
-        self.comment_en = translate_text(self.comment)
-
         # 1. 키워드 추출 → 기사 수집
         self.articles = self._get_related_articles()
 
-        # 2. 핵심 문장 추출 및 번역
+        # 2. 주장 번역
+        for claim in self.claims:
+            claim.text_en = translate_text(claim.text)
+
+        # 3. 핵심 문장 추출 및 번역
         self._extract_core_sentences()
 
-        # 3. NLI 수행
+        # 4. NLI 수행
         self.nli_results = analyze_claim_with_evidences(
-            self.comment_en, self.core_sentences_en
+            self.claims[0].text, self.core_sentences_en
         )
 
-        # 4. 점수 계산 및 대표 기사 선택
+        # 5. 점수 계산 및 대표 기사 선택
         self.score = self._calculate_score()
         self.best_article = self._get_best_article()
-        logger.log_crawled_news("1", "http", self.articles)
+        # logger.log_crawled_news("1", "http", self.articles)
         logger.log_comment_analysis(
-            self.comment, self.articles[0][1], self.core_sentences
+            self.comment, self.claims[0], self.articles[0][1], self.core_sentences
         )
 
     def _get_related_articles(self):
         num_keywords = 6
         articles = []
+
         while not articles and num_keywords > 0:
-            keyword = extract_keywords(self.comment, num_keywords)
-            print("[CommentFactCheck] Extracted keyword:", keyword)
-            articles = collect_data(keyword)
+            claims_info = extract_keywords(self.comment, num_keywords)
+            print("[factchecker.py]: extracted claims_info\n", claims_info)
+
+            keyword_list = []
+            for entry in claims_info:
+                # entry는 {"claim": str, "keywords": [str,...]}
+                claim = Claim(entry["claim"], entry["keywords"])
+                keyword_list.extend(entry.get("keywords", []))
+                self.claims.append(claim)
+            print("[factchecker.py]: using keyword_list\n", keyword_list)
+
+            # 3) 평탄화된 키워드 리스트로 기사 스크래핑 시도
+            articles = collect_data(keyword_list)
             num_keywords -= 1
+
         return articles
 
     def _extract_core_sentences(self):

@@ -1,12 +1,15 @@
 import os
 import json
 from datetime import datetime
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Any
+from services.data_models import Claim
 
 
 class NewsLogger:
     def __init__(self, log_dir: str = "logs"):
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.log_dir = log_dir
+        os.path.join(base_dir, log_dir)
         os.makedirs(log_dir, exist_ok=True)
 
         self.crawl_log_path = os.path.join(log_dir, "news_crawled.jsonl")
@@ -16,7 +19,7 @@ class NewsLogger:
     def _append_jsonl(self, filepath: str, data: Dict):
         data["timestamp"] = datetime.now().isoformat()
         with open(filepath, "a", encoding="utf-8") as f:
-            f.write(json.dumps(data, ensure_ascii=False) + "\n")
+            f.write(json.dumps(data, ensure_ascii=False, indent=4) + "\n")
 
     def log_crawled_news(self, title: str, url: str, body: str):
         """1. 크롤링한 뉴스 기사 로깅"""
@@ -35,6 +38,7 @@ class NewsLogger:
     def log_comment_analysis(
         self,
         comment: str,
+        claims: Claim,
         articles: List[Dict[str, str]],
         extracted_sentences: Dict[str, List[str]],
     ):
@@ -47,6 +51,7 @@ class NewsLogger:
         """
         log_data = {
             "comment": comment,
+            "claims": claims.to_dict(),
             "related_articles": articles,
             "extracted_sentences": extracted_sentences,
         }
