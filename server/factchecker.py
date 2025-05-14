@@ -5,7 +5,10 @@ from services.models import find_top_k_answers_regex, analyze_claim_with_evidenc
 from services.collecter import collect_data
 
 
+# analyze_comment
 def analyze_comment(comment):
+
+    # get keyword from comment and crawl related articles
     print("[factchecker.py]: analyzing comment\n", comment)
     num_keywords = 6
     articles = []
@@ -25,6 +28,7 @@ def analyze_comment(comment):
         articles = collect_data(keyword_list)
         num_keywords -= 1
 
+    # find core sentences
     core_sentences = []
     core_sentences_en = []
 
@@ -36,8 +40,10 @@ def analyze_comment(comment):
             core_sentences.append(sentence)
             core_sentences_en.append(sentence_en)
 
+    # translate comment to eng
     comment_en = translate_text(comment)
-    print(comment_en, core_sentences_en)
+
+    # NLI
     nli_results = analyze_claim_with_evidences(comment_en, core_sentences_en)
     for i in range(len(nli_results)):
         print(
@@ -47,9 +53,11 @@ def analyze_comment(comment):
             nli_results[i]["confidence"],
         )
 
+    # calculate scire from NLI result
     score = calculate_score(nli_results)
     max_index = get_max_confidence_article(nli_results)
     return score, articles[max_index]
+
 
 def calculate_score(nli_results):
     score = 0
@@ -58,9 +66,10 @@ def calculate_score(nli_results):
             score += nli_results[index]["confidence"]
         elif nli_results[index]["label"] == "contradiction":
             score -= nli_results[index]["confidence"]
-    score = 0.5 + score/(2*len(nli_results)) 
-    
+    score = 0.5 + score / (2 * len(nli_results))
+
     return score
+
 
 def get_max_confidence_article(nli_results):
     arg_max = 0
@@ -69,6 +78,7 @@ def get_max_confidence_article(nli_results):
         if nli_results[index]["confidence"] > max:
             max = nli_results[index]["confidence"]
             arg_max = index
+
     return arg_max//3
 
 def extract_keywords_batch(comments: list[str], n: int = 6):
@@ -78,3 +88,4 @@ def extract_keywords_batch(comments: list[str], n: int = 6):
         kws = extract_keywords(c, n)
         output.append({"index": idx, "keywords": kws})
     return output
+
