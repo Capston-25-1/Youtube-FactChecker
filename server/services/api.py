@@ -9,6 +9,7 @@ from urllib.parse import urlencode
 from newspaper import Article
 from google.api_core.exceptions import ResourceExhausted
 
+# gemini-2.5-pro-exp-03-25 할당량 초과 오류로 모델 변경
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model_gemini = genai.GenerativeModel(model_name="gemini-2.0-flash")
 
