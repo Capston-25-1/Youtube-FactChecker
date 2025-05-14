@@ -2,3 +2,5 @@
 .vscode
 test
 .env
+.pyc
+__pycache__
