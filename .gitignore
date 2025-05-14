@@ -5,3 +5,4 @@ test
 .pyc
 __pycache__
 jsonl
+.pyc
