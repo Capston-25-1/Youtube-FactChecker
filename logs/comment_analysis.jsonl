@@ -1,0 +1,41 @@
+{
+    "comment": "솔직히 이제 극장가서 비싼 돈 주고 영화 볼만한 이유가 별로 없음",
+    "claims": {
+        "text": "이제 극장가서 비싼 돈 주고 영화 볼만한 이유가 별로 없음",
+        "text_en": "There is no reason to go to the theater and pay a lot of money to see a movie anymore.",
+        "keywords": [
+            "극장",
+            "영화",
+            "비싼",
+            "가성비",
+            "OTT",
+            "관람"
+        ]
+    },
+    "related_articles": "https://brunch.co.kr/@@fSlz/75",
+    "extracted_sentences": {
+        "sentence": "OTT는 영화관의 가장 강력한 경쟁자이며, 기존 극장 모델을 위협하고 있음\n\n넷플릭스, 디즈니+, 티빙, 웨이브 등 주요 OTT 플랫폼이 빠르게 성장하면서, 관객들은 집에서 편하게 영화를 보는 것에 익숙해지고 있음\n\nOTT는 가격 경쟁력이 높고, 접근성이 뛰어나며, 시청이 자유로움 → 극장과 차별화되는 요소가 줄어들고 있음\n\n2.",
+        "score": 0.5612553358078003
+    },
+    "timestamp": "2025-05-15T02:08:27.944359"
+}
+{
+    "comment": "영화관 한번 갈돈이면 OTT 한달치 결제하고도 돈이 남는다는 것이 문제...  가는비용에 먹는비용 합치면 2달치는 결제 가능하니...",
+    "claims": {
+        "text": "영화관 한번 갈 돈이면 OTT 한달치 결제하고도 돈이 남는다",
+        "text_en": "For the price of one movie ticket, you can pay for a month of OTT and still have money left over.",
+        "keywords": [
+            "영화관",
+            "OTT",
+            "결제",
+            "가격",
+            "비용"
+        ]
+    },
+    "related_articles": "https://brunch.co.kr/@jskim-1004/75",
+    "extracted_sentences": {
+        "sentence": "이에 어떤 영화든지 1만 원 값은 해야 한다는 인식과 더해지며, ‘요즘 영화는 재미가 없다’까지 이어진다.",
+        "score": 0.5439956784248352
+    },
+    "timestamp": "2025-05-15T02:16:12.032095"
+}

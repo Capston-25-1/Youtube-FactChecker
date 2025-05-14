@@ -2,7 +2,7 @@ import os
 import json
 from datetime import datetime
 from typing import List, Dict, Tuple, Any
-from services.data_models import Claim
+from services.data_models import Claim, CoreSentence
 
 
 class NewsLogger:
@@ -40,7 +40,7 @@ class NewsLogger:
         comment: str,
         claims: Claim,
         articles: List[Dict[str, str]],
-        extracted_sentences: Dict[str, List[str]],
+        extracted_sentences: CoreSentence,
     ):
         """
         3. 댓글 기반 뉴스 정보 및 문장 로깅
@@ -53,7 +53,7 @@ class NewsLogger:
             "comment": comment,
             "claims": claims.to_dict(),
             "related_articles": articles,
-            "extracted_sentences": extracted_sentences,
+            "extracted_sentences": extracted_sentences.to_dict(),
         }
         self._append_jsonl(self.comment_log_path, log_data)
 

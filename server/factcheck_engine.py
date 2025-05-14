@@ -6,15 +6,15 @@ from services.inference import (
 )
 from services.collector import collect_data
 from tools.log_utils import logger
+from typing import List
 
 
 class CommentFactCheck:
     def __init__(self, comment: str):
-        self.comment = comment
-        self.claims = []
+        self.comment = comment  # 댓글 원문
+        self.claims = []  # 주장 리스트
+        self.core_sentences = []  # 핵심 문장 리스트
 
-        self.core_sentences = []
-        self.core_sentences_en = []
         self.best_article = None
 
     def analyze(self):
@@ -30,16 +30,14 @@ class CommentFactCheck:
         self._extract_core_sentences()
 
         # 4. NLI 수행
-        self.nli_results = analyze_claim_with_evidences(
-            self.claims[0].text, self.core_sentences_en
-        )
+        self.nli_results = self._nli_claim_with_core_sentences()
 
         # 5. 점수 계산 및 대표 기사 선택
         self.score = self._calculate_score()
         self.best_article = self._get_best_article()
         # logger.log_crawled_news("1", "http", self.articles)
         logger.log_comment_analysis(
-            self.comment, self.claims[0], self.articles[0][1], self.core_sentences
+            self.comment, self.claims[0], self.articles[0][1], self.core_sentences[0]
         )
 
     def _get_related_articles(self):
@@ -68,10 +66,17 @@ class CommentFactCheck:
         print("[CommentFactCheck] Extracting sentences and translating...")
         for article in self.articles:
             sentences = find_top_k_answers_regex(self.comment, article[2])
-            for sentence, _ in sentences:
+            for sentence, score in sentences:
                 sentence_en = translate_text(sentence)
-                self.core_sentences.append(sentence)
-                self.core_sentences_en.append(sentence_en)
+                core_sentence = CoreSentence(sentence, sentence_en, score)
+                self.core_sentences.append(core_sentence)
+
+    def _nli_claim_with_core_sentences(self):
+        evidences = []
+        for core_sentence in self.core_sentences:
+            evidences.append(core_sentence.sentence_en)
+
+        return analyze_claim_with_evidences(self.claims[0].text_en, evidences)
 
     def _calculate_score(self):
         score = 0

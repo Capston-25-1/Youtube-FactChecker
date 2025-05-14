@@ -1,11 +1,14 @@
 class CoreSentence:
-    def __init__(self, sentence, sentence_en):
+    def __init__(self, sentence, sentence_en, score):
         self.sentence = sentence
-        self.sentence_en = None
+        self.sentence_en = sentence_en
         self.article_idx = None
         self.sentence_index = None
-        self.similarity_score = None
+        self.similarity_score = score
         self.nli_result = {"confidence": None, "label": None}
+
+    def to_dict(self):
+        return {"sentence": self.sentence, "score": self.similarity_score.item()}
 
 
 class Claim:
