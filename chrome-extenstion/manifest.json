@@ -17,7 +17,7 @@
       "run_at": "document_idle"
     }
   ],
-  "permissions": [
+  "host_permissions": [
     "http://localhost:5000/*"
   ]
 }
