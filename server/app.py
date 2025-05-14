@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from factchecker import analyze_comment
+from _factchecker import CommentFactCheck
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -20,15 +21,17 @@ def analyze_comment():
     video_title = data.get("video_tag")
     comment = data.get("comment")
 
-    fact_result, article_info = analyze_comment(comment)
+    factchecker = CommentFactCheck(comment)
+    factchecker.analyze()
+    # fact_result, article_info = analyze_comment(comment)
 
-    explaination = f"'{comment}'에 대한 팩트체크 결과입니다. 신뢰도가 {fact_result * 100:.1f}%입니다."
+    explaination = f"'{comment}'에 대한 팩트체크 결과입니다. 신뢰도가 {factchecker.score * 100:.1f}%입니다."
     related_articles = [
-        {"title": article_info[0], "link": article_info[1]},
+        {"title": factchecker.best_article[0], "link": factchecker.best_article[1]},
     ]
 
     response = {
-        "fact_result": fact_result,
+        "fact_result": factchecker.score,
         "explaination": explaination,
         "related_articles": related_articles,
     }

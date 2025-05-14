@@ -30,7 +30,6 @@ def analyze_comment(comment):
 
     # translate comment to eng
     comment_en = translate_text(comment)
-    print(comment_en, core_sentences_en)
 
     # NLI
     nli_results = analyze_claim_with_evidences(comment_en, core_sentences_en)
