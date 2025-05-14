@@ -1,8 +1,8 @@
 import textwrap, json, re
 from google.api_core.exceptions import ResourceExhausted
 from services.api import extract_keywords, translate_text
-from services.models import find_top_k_answers_regex, analyze_claim_with_evidences
-from services.collecter import collect_data
+from services.inference import find_top_k_answers_regex, analyze_claim_with_evidences
+from services.collector import collect_data
 
 
 def analyze_comment(comment):
