@@ -51,3 +51,6 @@ class NewsLogger:
             "extracted_sentences": extracted_sentences,
         }
         self._append_jsonl(self.comment_log_path, log_data)
+
+
+logger = NewsLogger()

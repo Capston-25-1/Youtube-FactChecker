@@ -1,6 +1,7 @@
 from services.api import extract_keywords, translate_text
 from services.models import find_top_k_answers_regex, analyze_claim_with_evidences
 from services.collecter import collect_data
+from tools.logging import logger
 
 
 class CommentFactCheck:
@@ -35,6 +36,10 @@ class CommentFactCheck:
         # 4. 점수 계산 및 대표 기사 선택
         self.score = self._calculate_score()
         self.best_article = self._get_best_article()
+        logger.log_crawled_news("1", "http", self.articles)
+        logger.log_comment_analysis(
+            self.comment, self.articles[0][1], self.core_sentences
+        )
 
     def _get_related_articles(self):
         num_keywords = 6
