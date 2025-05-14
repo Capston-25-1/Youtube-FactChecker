@@ -4,4 +4,4 @@ test
 .env
 .pyc
 __pycache__
-jsonl
+.jsonl
