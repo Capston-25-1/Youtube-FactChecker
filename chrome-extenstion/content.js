@@ -28,13 +28,6 @@ function getVideoContext() {
   return { title, description, hashtags };
 }
 
-
-/** DOM → 새 댓글 요소 배열(아직 keyword 추출 안 한 것만) */
-function collectFreshComments() {
-  return Array.from(document.querySelectorAll("ytd-comment-thread-renderer"))
-              .filter(node => !SEEN.has(node));
-}
-
 async function batchExtract(videoCtx, comments) {
   try {
     console.log("📝 [batch_extract payload]:", { videoContext: videoCtx, comments });
@@ -93,7 +86,6 @@ function attachButton(node, videoCtx, claims) {
   if (BUTTONED.has(node)) return;
   const header = node.querySelector("#header-author");
   if (!header) return;
-
   const btn = document.createElement("button");
   btn.className = "api-call-button";
   btn.textContent = "팩트체크";
@@ -173,12 +165,15 @@ function renderResults(node, analyses){
   });
 }
 
+/** DOM → 새 댓글 요소 배열(아직 keyword 추출 안 한 것만) */
+function collectFreshComments() {
+  return Array.from(document.querySelectorAll("ytd-comment-thread-renderer"))
+              .filter(node => !SEEN.has(node));
+}
 
 /** 메인 루프: 새 댓글 발견 → batch keyword 추출 → 버튼 주입 */
 function processNewComments() {
-  const fresh = Array.from(
-    document.querySelectorAll("ytd-comment-thread-renderer")
-  ).filter(n => !SEEN.has(n));
+  const fresh = collectFreshComments();
   if (!fresh.length) return;
 
   fresh.forEach(node => {
@@ -201,10 +196,10 @@ async function flushQueue() {
   try {
     const results = await batchExtract(videoCtx, comments);
     console.log("[flushQueue] batchExtract results:", results);
-    results.forEach(({index, claims}) => {
-      // claims 배열이 비어있으면 버튼 달지 않음
-      if (claims && claims.length) {
-        attachButton(nodes[index], videoCtx, claims);
+    results.forEach(({index, keywords}) => {
+      // keywords 배열이 비어있으면 버튼 달지 않음
+      if (keywords && keywords.length) {
+        attachButton(nodes[index], videoCtx, keywords);
       }
     });
   } catch(e) {
