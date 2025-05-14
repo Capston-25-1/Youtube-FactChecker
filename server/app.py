@@ -12,8 +12,9 @@ CORS(app)
 def analyze():
     data = request.get_json()
     comment = data["comment"]
-    video_title = data.get("video_title", "")
-    video_url   = data.get("video_url", "")
+    video_title   = data.get("title", "")
+    video_description = data.get("description", "")
+    video_hashtags   = data.get("hashtags", [])
     fact_result, article_info = analyze_comment(comment)
 
     resp = {

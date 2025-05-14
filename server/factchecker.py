@@ -10,9 +10,19 @@ def analyze_comment(comment):
     num_keywords = 6
     articles = []
     while not articles and num_keywords > 0:
-        keyword = extract_keywords(comment, num_keywords)
-        print("[factchecker.py]: extracted keyword\n", keyword)
-        articles = collect_data(keyword)
+        # 1) 댓글에서 주장·키워드 추출 (dict 리스트 형태)
+        claims_info = extract_keywords(comment, num_keywords)
+        print("[factchecker.py]: extracted claims_info\n", claims_info)
+
+        # 2) 각 주장에서 키워드만 뽑아 평탄화(flatten)한 리스트로 변환
+        keyword_list = []
+        for entry in claims_info:
+            # entry는 {"claim": str, "keywords": [str,...]}
+            keyword_list.extend(entry.get("keywords", []))
+        print("[factchecker.py]: using keyword_list\n", keyword_list)
+
+        # 3) 평탄화된 키워드 리스트로 기사 스크래핑 시도
+        articles = collect_data(keyword_list)
         num_keywords -= 1
 
     core_sentences = []

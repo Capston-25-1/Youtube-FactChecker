@@ -89,48 +89,90 @@ async function analyze(comment, videoCtx) {
 })();
 
 /** 댓글 노드에 버튼 달기 */
-function attachButton(node, videoCtx, keywords){
+function attachButton(node, videoCtx, claims) {
   if (BUTTONED.has(node)) return;
   const header = node.querySelector("#header-author");
   if (!header) return;
 
   const btn = document.createElement("button");
-  btn.className="api-call-button";
-  btn.textContent="팩트체크";
-  btn.addEventListener("click", async ()=>{
-    btn.remove();  // 중복 호출 방지
+  btn.className = "api-call-button";
+  btn.textContent = "팩트체크";
+  btn.addEventListener("click", async () => {
+    btn.remove();
+
+    // 1) 해당 댓글만 다시 batchExtract 호출
     const commentText = node.querySelector("#content-text")?.innerText || "";
-    try{
-      const data = await analyze(commentText, videoCtx);
-      renderResult(node, data);
-    }catch(e){ console.error("analyze 오류:", e); }
+    let batchRes = [];
+    try {
+      batchRes = await batchExtract(videoCtx, [commentText]);
+    } catch (e) {
+      console.error("재추출 오류:", e);
+    }
+    console.log("[attachButton] single-extract claims:", batchRes[0]?.claims);
+
+    // batchRes[0].claims == [{claim, keywords}, ...]
+    const newClaims = (batchRes[0] && batchRes[0].claims) || [];
+
+    // 2) 모든 뽑힌 주장에 대해 팩트체크
+    const analyses = await Promise.all(
+    newClaims.map(c =>
+      analyze(c.claim, c.keywords, videoCtx)
+        .then(data => ({ claim: c.claim, ...data }))
+        .catch(() => ({ claim: c.claim, error: true }))
+    )
+    );
+
+    // 3) 기존과 동일하게 렌더링
+    renderResults(node, analyses);
   });
+
   header.appendChild(btn);
   BUTTONED.add(node);
 }
 
-/** 결과 DOM 삽입 */
-function renderResult(node, data){
+
+/** 결과 DOM 삽입 (복수 처리 버전) */
+function renderResults(node, analyses){
   let box = node.querySelector(".api-result-container");
   if (!box){
     box = document.createElement("div");
-    box.className="api-result-container"; box.style.marginLeft="8px";
+    box.className = "api-result-container";
+    box.style.marginLeft = "8px";
     node.querySelector("#header-author")?.appendChild(box);
-  } else box.innerHTML="";
+  } else {
+    box.innerHTML = "";
+  }
 
-  const fact = document.createElement("span");
-  fact.style.color="blue"; fact.style.fontWeight="bold";
-  fact.textContent=`Fact Result: ${(data.fact_result*100).toFixed(1)}%`;
-  box.appendChild(fact);
+  analyses.forEach(res => {
+    const wrap = document.createElement("div");
+    wrap.style.marginBottom = "6px";
 
-  (data.related_articles||[]).forEach(a=>{
-    const link = document.createElement("a");
-    link.target="_blank"; link.href=a.link;
-    link.style="margin-left:8px;color:green;font-weight:bold";
-    link.textContent=a.title;
-    box.appendChild(link);
+    // 1) 주장 텍스트
+    const claimEl = document.createElement("div");
+    claimEl.textContent = `주장: ${res.claim}`;
+    claimEl.style.fontWeight = "bold";
+    wrap.appendChild(claimEl);
+
+    // 2) 신뢰도 표시
+    const fact = document.createElement("div");
+    fact.textContent = `신뢰도: ${(res.fact_result*100).toFixed(1)}%`;
+    wrap.appendChild(fact);
+
+    // 3) 관련 기사 링크
+    (res.related_articles||[]).forEach(a => {
+      const link = document.createElement("a");
+      link.href = a.link;
+      link.target = "_blank";
+      link.textContent = a.title;
+      link.style.display = "block";
+      link.style.marginLeft = "8px";
+      wrap.appendChild(link);
+    });
+
+    box.appendChild(wrap);
   });
 }
+
 
 /** 메인 루프: 새 댓글 발견 → batch keyword 추출 → 버튼 주입 */
 function processNewComments() {
@@ -150,19 +192,19 @@ function processNewComments() {
 
 async function flushQueue() {
   if (!queueNodes.length) return;
-  console.log("flushQueue 호출, 노드 개수:", queueNodes.length);
-
   const nodes    = queueNodes.splice(0);
-  const comments = nodes.map(n =>
-    n.querySelector("#content-text")?.innerText?.trim() || ""
+  const comments = nodes.map(n => 
+    n.querySelector("#content-text")?.innerText.trim() || ""
   );
   const videoCtx = getVideoContext();
 
   try {
     const results = await batchExtract(videoCtx, comments);
-    results.forEach(({index, keywords}) => {
-      if (keywords && keywords.length) {
-        attachButton(nodes[index], videoCtx, keywords);
+    console.log("[flushQueue] batchExtract results:", results);
+    results.forEach(({index, claims}) => {
+      // claims 배열이 비어있으면 버튼 달지 않음
+      if (claims && claims.length) {
+        attachButton(nodes[index], videoCtx, claims);
       }
     });
   } catch(e) {
