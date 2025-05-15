@@ -38,9 +38,8 @@ class NewsLogger:
     def log_comment_analysis(
         self,
         comment: str,
-        claims: Claim,
+        claims: List[Claim],
         articles: List[Dict[str, str]],
-        extracted_sentences: CoreSentence,
     ):
         """
         3. 댓글 기반 뉴스 정보 및 문장 로깅
@@ -49,11 +48,11 @@ class NewsLogger:
         - articles: [{title, url}]
         - extracted_sentences: {title: [sentence1, sentence2, ...]}
         """
+        claims_dict_list = [claim.to_dict() for claim in claims]
         log_data = {
             "comment": comment,
-            "claims": claims.to_dict(),
+            "claims": claims_dict_list,
             "related_articles": articles,
-            "extracted_sentences": extracted_sentences.to_dict(),
         }
         self._append_jsonl(self.comment_log_path, log_data)
 
