@@ -1,7 +1,7 @@
 const API_BASE    = "http://localhost:5000";
 const SEEN        = new WeakSet();
 const BUTTONED    = new WeakSet();
-const FLUSH_DELAY = 3000;
+const FLUSH_DELAY = 500;
 const fontName = "Jua";
 
 let queueNodes = [];     // 큐에 쌓인 댓글 노드
@@ -62,6 +62,10 @@ async function analyze(comment, videoCtx) {
     body: JSON.stringify({ comment, ...videoCtx })
   });
   if (!resp.ok) throw new Error(`status ${resp.status}`);
+  
+  const data = await resp.json();
+  console.log("📝 [analyze result]:", data);
+
   return resp.json();
 }
 
@@ -98,32 +102,23 @@ function attachButton(node, videoCtx, claims) {
   btn.className = "api-call-button";
   btn.textContent = "팩트체크";
   btn.addEventListener("click", async () => {
+  
+    console.log("📝 [button click – claims]:", claims);//클릭한 댓글 로그 출력
+    
     btn.remove();
 
-    // 1) 해당 댓글만 다시 batchExtract 호출
-    const commentText = node.querySelector("#content-text")?.innerText || "";
-    let batchRes = [];
+    // claim 넣는 거에서 comment 넣는거로 변경
+     // 1) 댓글 추출
+    const commentText = node.querySelector("#content-text")?.innerText.trim() || "";
+
+    // 2) analyze 호출
     try {
-      batchRes = await batchExtract(videoCtx, [commentText]);
+      const result = await analyze(commentText, videoCtx);
+      renderResults(node, [{ claim: commentText, ...result }]);
     } catch (e) {
-      console.error("재추출 오류:", e);
+      console.error("팩트체크 오류:", e);
+      renderResults(node, [{ claim: commentText, error: true }]);
     }
-    console.log("[attachButton] single-extract claims:", batchRes[0]?.claims);
-
-    // batchRes[0].claims == [{claim, keywords}, ...]
-    const newClaims = (batchRes[0] && batchRes[0].claims) || [];
-
-    // 2) 모든 뽑힌 주장에 대해 팩트체크
-    const analyses = await Promise.all(
-    newClaims.map(c =>
-      analyze(c.claim, c.keywords, videoCtx)
-        .then(data => ({ claim: c.claim, ...data }))
-        .catch(() => ({ claim: c.claim, error: true }))
-    )
-    );
-
-    // 3) 기존과 동일하게 렌더링
-    renderResults(node, analyses);
   });
 
   header.appendChild(btn);
