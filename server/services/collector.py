@@ -1,7 +1,11 @@
 import os
 import pickle
 import hashlib
+import requests
 from typing import List, Tuple
+from newspaper import Article
+from urllib.parse import urlencode
+from bs4 import BeautifulSoup
 
 CACHE_DIR = "cache"
 
@@ -39,7 +43,7 @@ def collect_data(keyword: list[str], pages: int = 1):
             if a_tag and title_div:
                 title = title_div.get_text(strip=True)
                 link = a_tag["href"]
-
+                # newspaper3k 사용하여 기사 본문 추출
                 try:
                     article = Article(link, language='ko')
                     article.download()
