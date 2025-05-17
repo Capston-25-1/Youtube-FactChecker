@@ -1,5 +1,6 @@
 from services.api import extract_keywords, translate_text
 from services.inference import (
+    rank_keywords,
     find_top_k_answers_regex,
     analyze_claim_with_evidences,
 )
@@ -17,9 +18,10 @@ class Comment:
 
 
 class CommentFactCheck:
-    def __init__(self, comment: str):
+    def __init__(self, comment: str, video_ctx: dict | None = None):
         self.comment = comment
         self.comment_en = None
+        self.video_ctx = video_ctx or {}
 
         self.articles = []  # [(title, url, body)]
         self.core_sentences = []
@@ -56,11 +58,14 @@ class CommentFactCheck:
     def _get_related_articles(self):
         num_keywords = 6
         articles = []
-        while not articles and num_keywords > 0:
-            keyword = extract_keywords(self.comment, num_keywords)
-            print("[CommentFactCheck] Extracted keyword:", keyword)
-            articles = collect_data(keyword)
-            num_keywords -= 1
+        all_keywords = extract_keywords(self.comment, num_keywords)
+        ranked_keywords = rank_keywords(all_keywords, self.video_ctx)
+        for k in range(len(ranked_keywords), 0, -1):
+            keyword_subset = ranked_keywords[:k]  # 상위 k개만 유지
+            print(f"\nkeyword_subset:{keyword_subset}\n")
+            articles = collect_data(keyword_subset)
+            if articles:
+                break
         return articles
 
     def _extract_core_sentences(self):
