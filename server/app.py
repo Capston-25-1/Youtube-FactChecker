@@ -13,17 +13,16 @@ CORS(app)
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
-
     data = request.get_json()
     comment = data["comment"]
-    video_title = data.get("title", "")
-    video_description = data.get("description", "")
-    video_hashtags = data.get("hashtags", [])
-
-    factchecker = CommentFactCheck(comment)
+    video_ctx = {
+    "title": data.get("title", ""),
+    "description": data.get("description", ""),
+    "hashtags": data.get("hashtags", [])
+    }
+    factchecker = CommentFactCheck(comment, video_ctx)
     factchecker.analyze()
     # fact_result, article_info = analyze_comment(comment)
-
     explaination = f"'{comment}'에 대한 팩트체크 결과입니다. 신뢰도가 {factchecker.score * 100:.1f}%입니다."
     related_articles = [
         {"title": factchecker.best_article[0], "link": factchecker.best_article[1]},
