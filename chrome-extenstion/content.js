@@ -82,7 +82,7 @@ async function analyze(comment, videoCtx) {
 })();
 
 /** 댓글 노드에 버튼 달기 */
-function attachButton(node, videoCtx, claims) {
+function attachButton(node, videoCtx) {
   if (BUTTONED.has(node)) return;
   const header = node.querySelector("#header-author");
   if (!header) return;
@@ -92,31 +92,19 @@ function attachButton(node, videoCtx, claims) {
   btn.addEventListener("click", async () => {
     btn.remove();
 
-    // 1) 해당 댓글만 다시 batchExtract 호출
-    const commentText = node.querySelector("#content-text")?.innerText || "";
-    let batchRes = [];
-    try {
-      batchRes = await batchExtract(videoCtx, [commentText]);
-    } catch (e) {
-      console.error("재추출 오류:", e);
-    }
-    console.log("[attachButton] single-extract claims:", batchRes[0]?.claims);
+    // claim 넣는 거에서 comment 넣는거로 변경
+     // 1) 댓글 추출
+     const commentText = node.querySelector("#content-text")?.innerText.trim() || "";
 
-    // batchRes[0].claims == [{claim, keywords}, ...]
-    const newClaims = (batchRes[0] && batchRes[0].claims) || [];
-
-    // 2) 모든 뽑힌 주장에 대해 팩트체크
-    const analyses = await Promise.all(
-    newClaims.map(c =>
-      analyze(c.claim, c.keywords, videoCtx)
-        .then(data => ({ claim: c.claim, ...data }))
-        .catch(() => ({ claim: c.claim, error: true }))
-    )
-    );
-
-    // 3) 기존과 동일하게 렌더링
-    renderResults(node, analyses);
-  });
+     // 2) analyze 호출
+     try {
+       const result = await analyze(commentText, videoCtx);
+       renderResults(node, [{ claim: commentText, ...result }]);
+     } catch (e) {
+       console.error("팩트체크 오류:", e);
+       renderResults(node, [{ claim: commentText, error: true }]);
+     }
+   });
 
   header.appendChild(btn);
   BUTTONED.add(node);
@@ -199,7 +187,7 @@ async function flushQueue() {
     results.forEach(({index, keywords}) => {
       // keywords 배열이 비어있으면 버튼 달지 않음
       if (keywords && keywords.length) {
-        attachButton(nodes[index], videoCtx, keywords);
+        attachButton(nodes[index], videoCtx);
       }
     });
   } catch(e) {
