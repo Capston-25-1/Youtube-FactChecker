@@ -92,3 +92,25 @@ def analyze_claim_with_evidences(claim, evidences):
         )
 
     return results
+
+
+def analyze_claim_with_evidence(claim, evidence):
+    """
+    각 evidence가 claim에 대해 어떤 판단(entailment, contradiction, neutral)을 하는지 분석합니다.
+
+    Args:
+        claim (str): 확인하고자 하는 주장
+        evidences (list[str]): 해당 주장과 비교할 증거 문장들
+
+    Returns:
+        list[dict]: 각 evidence에 대한 판단 결과 리스트
+    """
+
+    # NLI 모델 입력: premise = evidence, hypothesis = claim
+    output = nli_pipeline(f"{evidence} [SEP] {claim}")
+
+    # 결과는 label과 score가 포함된 리스트 (보통 첫 번째가 가장 높은 점수)
+    label = output[0]["label"]
+    score = output[0]["score"]
+
+    return {"label": label.lower(), "confidence": round(score, 4)}

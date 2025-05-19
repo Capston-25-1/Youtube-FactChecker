@@ -16,7 +16,8 @@ CORS(app)
 def analyze():
 
     data = request.get_json()
-    comment = data["comment"]
+    comment = data["comment"]  # claim으로 바꾸고 keyword api로 받음
+    # keywords = data["keywords"]
 
     factchecker = CommentFactCheck(comment)
     factchecker.analyze()
