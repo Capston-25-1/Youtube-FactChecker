@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from factchecker import analyze_comment
+
+# from factchecker import analyze_comment
 from services.api import extract_keywords_batch_llm
 from factcheck_engine import CommentFactCheck
 from dotenv import load_dotenv
@@ -14,6 +15,7 @@ CORS(app)
 @app.route("/analyze", methods=["POST"])
 def analyze():
     data = request.get_json()
+
     comment = data["comment"]
     video_ctx = {
     "title": data.get("title", ""),
@@ -21,6 +23,7 @@ def analyze():
     "hashtags": data.get("hashtags", [])
     }
     factchecker = CommentFactCheck(comment, video_ctx)
+
     factchecker.analyze()
     # fact_result, article_info = analyze_comment(comment)
     explaination = f"'{comment}'에 대한 팩트체크 결과입니다. 신뢰도가 {factchecker.score * 100:.1f}%입니다."

@@ -7,7 +7,9 @@ embedding_model = SentenceTransformer(
     "snunlp/KR-SBERT-V40K-klueNLI-augSTS", device="cpu"
 )
 # NLI 파이프라인 생성
-nli_pipeline = pipeline("text-classification", model="roberta-large-mnli", truncation=True, max_length=512)
+nli_pipeline = pipeline(
+    "text-classification", model="roberta-large-mnli", truncation=True, max_length=512
+)
 
 def rank_keywords(keywords, video_ctx):
     video_corpus = ". ".join([video_ctx.get("title", "").strip(". "), video_ctx.get("description", "").strip(". "), " ".join(video_ctx.get("hashtags", []))])
@@ -50,17 +52,22 @@ def find_top_k_answers_regex(query, text, k=3):
     # 유사도와 문장 인덱스를 함께 저장
     sentence_scores = list(zip(sentences, similarities))
 
+    # 유사도 0.5 이상 필터링
+    filtered_sentence_scores = [s for s in sentence_scores if s[1] >= 0.5]
+
     # 유사도 기준으로 내림차순 정렬
-    sentence_scores = sorted(sentence_scores, key=lambda x: x[1], reverse=True)
+    filtered_sentence_scores = sorted(
+        filtered_sentence_scores, key=lambda x: x[1], reverse=True
+    )
 
     # 상위 k개 문장 반환
-    top_k_sentences_with_scores = sentence_scores[:k]
+    top_k_sentences_with_scores = filtered_sentence_scores[:k]
     top_k_scores = []
     for sentence_score in top_k_sentences_with_scores:
         top_k_scores.append(sentence_score[1])
-    print("[models.py]:", top_k_sentences_with_scores)
+    print("[inference.py]:", top_k_sentences_with_scores)
     print(
-        "[models.py]: found",
+        "[inference.py]: found",
         len(top_k_sentences_with_scores),
         "sentences with",
         top_k_scores,
@@ -98,3 +105,25 @@ def analyze_claim_with_evidences(claim, evidences):
         )
 
     return results
+
+
+def analyze_claim_with_evidence(claim, evidence):
+    """
+    각 evidence가 claim에 대해 어떤 판단(entailment, contradiction, neutral)을 하는지 분석합니다.
+
+    Args:
+        claim (str): 확인하고자 하는 주장
+        evidences (list[str]): 해당 주장과 비교할 증거 문장들
+
+    Returns:
+        list[dict]: 각 evidence에 대한 판단 결과 리스트
+    """
+
+    # NLI 모델 입력: premise = evidence, hypothesis = claim
+    output = nli_pipeline(f"{evidence} [SEP] {claim}")
+
+    # 결과는 label과 score가 포함된 리스트 (보통 첫 번째가 가장 높은 점수)
+    label = output[0]["label"]
+    score = output[0]["score"]
+
+    return {"label": label.lower(), "confidence": round(score, 4)}

@@ -1,7 +1,7 @@
 const API_BASE    = "http://localhost:5000";
 const SEEN        = new WeakSet();
 const BUTTONED    = new WeakSet();
-const FLUSH_DELAY = 3000;
+const FLUSH_DELAY = 500;
 const fontName = "Jua";
 
 let queueNodes = [];     // 큐에 쌓인 댓글 노드
@@ -55,6 +55,10 @@ async function analyze(comment, videoCtx) {
     body: JSON.stringify({ comment, ...videoCtx })
   });
   if (!resp.ok) throw new Error(`status ${resp.status}`);
+  
+  const data = await resp.json();
+  console.log("📝 [analyze result]:", data);
+
   return resp.json();
 }
 
@@ -90,6 +94,9 @@ function attachButton(node, videoCtx) {
   btn.className = "api-call-button";
   btn.textContent = "팩트체크";
   btn.addEventListener("click", async () => {
+  
+    console.log("📝 [button click – claims]:", claims);//클릭한 댓글 로그 출력
+    
     btn.remove();
 
     // claim 넣는 거에서 comment 넣는거로 변경
@@ -105,6 +112,7 @@ function attachButton(node, videoCtx) {
        renderResults(node, [{ claim: commentText, error: true }]);
      }
    });
+
 
   header.appendChild(btn);
   BUTTONED.add(node);

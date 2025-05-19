@@ -1,0 +1,151 @@
+{
+    "comment": "솔직히 이제 극장가서 비싼 돈 주고 영화 볼만한 이유가 별로 없음",
+    "claims": {
+        "text": "이제 극장가서 비싼 돈 주고 영화 볼만한 이유가 별로 없음",
+        "text_en": "There is no reason to go to the theater and pay a lot of money to see a movie anymore.",
+        "keywords": [
+            "극장",
+            "영화",
+            "비싼",
+            "가성비",
+            "OTT",
+            "관람"
+        ]
+    },
+    "related_articles": "https://brunch.co.kr/@@fSlz/75",
+    "extracted_sentences": {
+        "sentence": "OTT는 영화관의 가장 강력한 경쟁자이며, 기존 극장 모델을 위협하고 있음\n\n넷플릭스, 디즈니+, 티빙, 웨이브 등 주요 OTT 플랫폼이 빠르게 성장하면서, 관객들은 집에서 편하게 영화를 보는 것에 익숙해지고 있음\n\nOTT는 가격 경쟁력이 높고, 접근성이 뛰어나며, 시청이 자유로움 → 극장과 차별화되는 요소가 줄어들고 있음\n\n2.",
+        "score": 0.5612553358078003
+    },
+    "timestamp": "2025-05-15T02:08:27.944359"
+}
+{
+    "comment": "영화관 한번 갈돈이면 OTT 한달치 결제하고도 돈이 남는다는 것이 문제...  가는비용에 먹는비용 합치면 2달치는 결제 가능하니...",
+    "claims": {
+        "text": "영화관 한번 갈 돈이면 OTT 한달치 결제하고도 돈이 남는다",
+        "text_en": "For the price of one movie ticket, you can pay for a month of OTT and still have money left over.",
+        "keywords": [
+            "영화관",
+            "OTT",
+            "결제",
+            "가격",
+            "비용"
+        ]
+    },
+    "related_articles": "https://brunch.co.kr/@jskim-1004/75",
+    "extracted_sentences": {
+        "sentence": "이에 어떤 영화든지 1만 원 값은 해야 한다는 인식과 더해지며, ‘요즘 영화는 재미가 없다’까지 이어진다.",
+        "score": 0.5439956784248352
+    },
+    "timestamp": "2025-05-15T02:16:12.032095"
+}
+{
+    "comment": "지지하는 사람은 증가하고있다.",
+    "claims": [
+        {
+            "text": "지지하는 사람은 증가하고있다",
+            "text_en": "The number of supporters is increasing",
+            "keywords": [
+                "지지율 증가",
+                "지지 세력",
+                "지지 확대"
+            ],
+            "core_sentences": []
+        }
+    ],
+    "related_articles": "https://www.news1.kr/world/usa-canada/5592736",
+    "timestamp": "2025-05-15T21:33:22.325393"
+}
+{
+    "comment": "최근 한달동안 당원은 7만 초반에서 10만으로 40%이상 증가했다.",
+    "claims": [
+        {
+            "text": "최근 한달동안 당원은 7만 초반에서 10만으로 40%이상 증가했다",
+            "text_en": "In the past month, party members have increased by more than 40%, from the early 70,000s to 100,000s.",
+            "keywords": [
+                "당원",
+                "증가",
+                "40%이상",
+                "한달",
+                "7만",
+                "10만"
+            ],
+            "core_sentences": [
+                {
+                    "sentence": "\n\n\n지난달 15일 0시 기준 7만86명이던 온라인 당원은 한 달 만에 3만명 이상 증가해 10만명을 넘어섰다.",
+                    "score": 0.6685466766357422,
+                    "nli_result": {
+                        "confidence": 0.8614,
+                        "label": "entailment"
+                    }
+                },
+                {
+                    "sentence": "특히 지난 10일 0시부터 15일까지 닷새간 늘어난 당원만 1만5877명으로, 하루 평균 2268명이 가입했다.",
+                    "score": 0.5994584560394287,
+                    "nli_result": {
+                        "confidence": 0.9748,
+                        "label": "neutral"
+                    }
+                },
+                {
+                    "sentence": "\n\n\n15일 개혁신당 선거대책위원회는 이날 기준 온라인 당원수가 10만명을 넘어섰다고 밝혔다.",
+                    "score": 0.5950495600700378,
+                    "nli_result": {
+                        "confidence": 0.996,
+                        "label": "neutral"
+                    }
+                },
+                {
+                    "sentence": "\n이 후보 유튜브 채널인 이준석TV 구독자도 약 한 달 만에 2배 이상 증가해 구독자 10만명을 돌파했다고 선대위 관계자는 설명했다.",
+                    "score": 0.6557286381721497,
+                    "nli_result": {
+                        "confidence": 0.6778,
+                        "label": "neutral"
+                    }
+                },
+                {
+                    "sentence": "\n개혁신당 선거대책위원회에 따르면 최근 일평균 당원 증가 수는 508명으로, 허은아 전 대표 체제 당시 7만명을 밑돌던 당원 수는 현재 8만 4천명을 넘어섰다.",
+                    "score": 0.5850132703781128,
+                    "nli_result": {
+                        "confidence": 0.5529,
+                        "label": "neutral"
+                    }
+                },
+                {
+                    "sentence": "대략 한 달 사이 1만5천명가량 늘어난 셈이다.",
+                    "score": 0.5484644770622253,
+                    "nli_result": {
+                        "confidence": 0.9311,
+                        "label": "neutral"
+                    }
+                },
+                {
+                    "sentence": "하루 기준 당원이 가장 많이 가입한 지난 24일에는 1340명이 증가했다.당원을 연령대별로 나눠보면 40~50대 당원이 가장 많이 증가했다.",
+                    "score": 0.6378072500228882,
+                    "nli_result": {
+                        "confidence": 0.9554,
+                        "label": "neutral"
+                    }
+                },
+                {
+                    "sentence": "하루 기준 당원이 가장 많이 가입한 지난 24일에는 1340명이 증가했다.",
+                    "score": 0.6325729489326477,
+                    "nli_result": {
+                        "confidence": 0.982,
+                        "label": "neutral"
+                    }
+                },
+                {
+                    "sentence": "개혁신당 당원 수가 8만명을 넘어섰다.",
+                    "score": 0.6155413389205933,
+                    "nli_result": {
+                        "confidence": 0.9859,
+                        "label": "neutral"
+                    }
+                }
+            ]
+        }
+    ],
+    "related_articles": "https://m.news.zum.com/articles/98270155/%EA%B0%9C%ED%98%81%EC%8B%A0%EB%8B%B9-%EC%98%A8%EB%9D%BC%EC%9D%B8-%EB%8B%B9%EC%9B%90-10%EB%A7%8C%EB%AA%85-%EB%8F%8C%ED%8C%8C-%ED%95%9C%EB%8B%AC-%EC%83%88-3%EB%A7%8C%EB%AA%85-%EB%8A%98%EC%97%88%EB%8B%A4?cm=news_edit&r=2&thumb=0",
+    "timestamp": "2025-05-15T21:33:24.810414"
+}
