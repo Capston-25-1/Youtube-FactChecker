@@ -35,10 +35,9 @@ class NewsLogger:
         }
         self._append_jsonl(self.translation_log_path, log_data)
 
-    def log_comment_analysis(
+    def log_claim_analysis(
         self,
-        comment: str,
-        claims: List[Claim],
+        claim: Claim,
         articles: List[Dict[str, str]],
     ):
         """
@@ -48,10 +47,8 @@ class NewsLogger:
         - articles: [{title, url}]
         - extracted_sentences: {title: [sentence1, sentence2, ...]}
         """
-        claims_dict_list = [claim.to_dict() for claim in claims]
         log_data = {
-            "comment": comment,
-            "claims": claims_dict_list,
+            "claims": claim.to_dict(),
             "related_articles": articles,
         }
         self._append_jsonl(self.comment_log_path, log_data)

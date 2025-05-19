@@ -12,26 +12,23 @@ from dataclasses import dataclass
 from typing import List, Tuple, Dict
 from tools.log_utils import logger
 
-class Comment:
-    def __init__(self, comment: str):
-        self.comment = comment
-        self.claims = []
 
 class CommentFactCheck:
-    def __init__(self, comment: str, video_ctx: dict | None = None):
-        self.comment = comment
-        self.comment_en = None
+    def __init__(
+        self, comment: str, keywords: List[str], video_ctx: dict | None = None
+    ):
+        self.claim = Claim(comment)
+        self.keywords = keywords
         self.video_ctx = video_ctx or {}
         self.best_article = None
 
     def analyze(self):
-        print("[CommentFactCheck] Analyzing comment...\n", self.comment)
+        print("[CommentFactCheck] Analyzing comment...\n", self.claim.text)
         # 1. 키워드 추출 → 기사 수집
         self.articles = self._get_related_articles()
 
         # 2. 주장 번역
-        for claim in self.claims:
-            claim.text_en = translate_text(claim.text)
+        self.claim.text_en = translate_text(self.claim.text)
 
         # 3. 핵심 문장 추출 및 번역
         self._extract_core_sentences()
@@ -43,13 +40,11 @@ class CommentFactCheck:
         self.score = self._calculate_score()
         self.best_article = self._get_best_article()
         # logger.log_crawled_news("1", "http", self.articles)
-        logger.log_comment_analysis(self.comment, self.claims, self.articles[0][1])
+        logger.log_claim_analysis(self.claim, self.articles[0][1])
 
     def _get_related_articles(self):
-        num_keywords = 6
         articles = []
-        all_keywords = extract_keywords(self.comment, num_keywords)
-        ranked_keywords = rank_keywords(all_keywords, self.video_ctx)
+        ranked_keywords = rank_keywords(self.keywords, self.video_ctx)
         for k in range(len(ranked_keywords), 0, -1):
             keyword_subset = ranked_keywords[:k]  # 상위 k개만 유지
             print(f"\nkeyword_subset:{keyword_subset}\n")
@@ -62,16 +57,16 @@ class CommentFactCheck:
     def _extract_core_sentences(self):
         print("[CommentFactCheck] Extracting sentences and translating...")
         for article in self.articles:
-            sentences = find_top_k_answers_regex(self.comment, article[2])
+            sentences = find_top_k_answers_regex(self.claim.text, article[2])
             for sentence, score in sentences:
                 sentence_en = translate_text(sentence)
                 core_sentence = CoreSentence(sentence, sentence_en, score)
-                self.claims[0].core_sentences.append(core_sentence)
+                self.claim.core_sentences.append(core_sentence)
 
     def _nli_claim_with_core_sentences(self):
-        for core_sentence in self.claims[0].core_sentences:
+        for core_sentence in self.claim.core_sentences:
             res = analyze_claim_with_evidence(
-                self.claims[0].text_en, core_sentence.sentence_en
+                self.claim.text_en, core_sentence.sentence_en
             )
             core_sentence.nli_result["confidence"] = res["confidence"]
             core_sentence.nli_result["label"] = res["label"]
@@ -79,7 +74,7 @@ class CommentFactCheck:
 
     def _calculate_score(self):
         score = 0
-        for core_sentence in self.claims[0].core_sentences:
+        for core_sentence in self.claim.core_sentences:
             if core_sentence.nli_result["label"] == "entailment":
                 score += (
                     core_sentence.nli_result["confidence"]
@@ -91,8 +86,8 @@ class CommentFactCheck:
                     * core_sentence.similarity_score.item()
                 )
         score = self._sharpen_score_sigmoid(
-            0.5 + score / (2 * len(self.claims[0].core_sentences))
-            if self.claims[0].core_sentences
+            0.5 + score / (2 * len(self.claim.core_sentences))
+            if self.claim.core_sentences
             else 0.5
         )
         return score
@@ -104,7 +99,7 @@ class CommentFactCheck:
 
         max_conf = -1
         arg_max = 0
-        for i, core_sentence in enumerate(self.claims[0].core_sentences):
+        for i, core_sentence in enumerate(self.claim.core_sentences):
             result = core_sentence.nli_result
             if result["confidence"] > max_conf:
                 max_conf = result["confidence"]
@@ -114,9 +109,7 @@ class CommentFactCheck:
 
     def summary(self):
         return {
-            "comment": self.comment,
+            "comment": self.claim,
             "score": self.score,
             "best_article": self.best_article,
-            "core_sentences": self.core_sentences,
-            "nli_results": self.nli_results,
         }

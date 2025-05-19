@@ -149,3 +149,282 @@
     "related_articles": "https://m.news.zum.com/articles/98270155/%EA%B0%9C%ED%98%81%EC%8B%A0%EB%8B%B9-%EC%98%A8%EB%9D%BC%EC%9D%B8-%EB%8B%B9%EC%9B%90-10%EB%A7%8C%EB%AA%85-%EB%8F%8C%ED%8C%8C-%ED%95%9C%EB%8B%AC-%EC%83%88-3%EB%A7%8C%EB%AA%85-%EB%8A%98%EC%97%88%EB%8B%A4?cm=news_edit&r=2&thumb=0",
     "timestamp": "2025-05-15T21:33:24.810414"
 }
+{
+    "claims": {
+        "text": "포괄임금제는 악법임. 당초 취지는 근무 시간을 줄이겠다는 의도였으나 늘 그렇듯 의도에만 맞추어 현실이 굴러가지는 않음",
+        "text_en": "The comprehensive wage system is a bad law. The original intention was to reduce working hours, but as always, reality does not follow the intention.",
+        "keywords": [],
+        "core_sentences": [
+            {
+                "sentence": "포괄임금제를 적용한다 해도 근로계약서에 명시된 시간보다 더 일했다면 연장근로수당이나 야간근로수당을 받아야 하지만 법은 멀고 ‘사장님’은 가깝다.",
+                "score": 0.7110089063644409,
+                "nli_result": {
+                    "confidence": 0.842,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "근로계약보다 많이 일해도 포괄임금제라는 명목으로 연장근로수당을 주지 않는 기업들이 많다.",
+                "score": 0.65738844871521,
+                "nli_result": {
+                    "confidence": 0.9467,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "노동법을 전공한 최석환 명지대 교수는 “포괄임금제는 법에서 규정하고 있는 근로계약이 아니라 사용자와 계약자가 자의적으로 맺은 계약일 뿐이다.",
+                "score": 0.6219195127487183,
+                "nli_result": {
+                    "confidence": 0.9526,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "임금만 줄고 근로시간은 그대로일 수 있다는 것이다.고용노동부는 대법원 판례를 반영한 포괄임금 관련 지침을 만들어 조만간 발표할 계획이다.",
+                "score": 0.6727652549743652,
+                "nli_result": {
+                    "confidence": 0.9639,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "하지만 A 씨 회사처럼 포괄임금으로 정한 시간보다 더 일을 시키고도 수당을 적게 주려고 포괄임금제를 도입한 사업장이 적지 않다.",
+                "score": 0.6577317714691162,
+                "nli_result": {
+                    "confidence": 0.8118,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "이는 거꾸로 근로시간을 산정하기 쉬운 사무직 등에 적용해서는 안 된다는 얘기다.",
+                "score": 0.6574341654777527,
+                "nli_result": {
+                    "confidence": 0.8956,
+                    "label": "neutral"
+                }
+            }
+        ]
+    },
+    "related_articles": "https://www.khan.co.kr/article/201801151816001",
+    "timestamp": "2025-05-19T22:08:27.905910"
+}
+{
+    "claims": {
+        "text": "포괄임금제는 악법임. 당초 취지는 근무 시간을 줄이겠다는 의도였으나 늘 그렇듯 의도에만 맞추어 현실이 굴러가지는 않음",
+        "text_en": "The comprehensive wage system is a bad law. The original intention was to reduce working hours, but as always, reality does not follow the intention.",
+        "keywords": [
+            "포괄임금제",
+            "악법",
+            "근무 시간",
+            "취지",
+            "의도",
+            "현실"
+        ],
+        "core_sentences": [
+            {
+                "sentence": "포괄임금제도를 개편하지 않는 한, 주 69시간·52시간 등 시간을 정하는 제도는 의미가 없다는 비판이 나온다.",
+                "score": 0.686465322971344,
+                "nli_result": {
+                    "confidence": 0.9646,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "공짜 야근을 합리화시키는 포괄임금제, 비정상적인 업무량을 해결하지 않고서는 근무시간을 조절하는 게 아무 의미가 없다는 주장이다.",
+                "score": 0.6690969467163086,
+                "nli_result": {
+                    "confidence": 0.7034,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "그러나 현실에서는 정당하지 않은 포괄임금 활용이 만연한 게 현실이다.",
+                "score": 0.666644275188446,
+                "nli_result": {
+                    "confidence": 0.9565,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "밤새도록 불이 켜져 있어서 그렇다고 한다\"고 설명했다.이 의원은 \"뭐가 가장 핵심적인 문제인가 들여다봤더니 근로계약을 할 때 '포괄임금제'를 적용하고 있었다\"고 지적했다.근로계약 시 보통 출퇴근 시간을 정하고 퇴근시간 이후에 일하면 연장근로수당을, 오후 10시 이후엔 야간근로수당을, 휴일엔 휴일근로수당을 주게끔 되어 있으나 초과근로시간만 정해두고 마땅한 수당을 주지 않는다는 설명이다.",
+                "score": 0.6466749906539917,
+                "nli_result": {
+                    "confidence": 0.5447,
+                    "label": "contradiction"
+                }
+            },
+            {
+                "sentence": "결국 노동자들은 계약서 상에 나타난 시간보다 훨씬 더 많은 시간을 일하면서도, 이에 상응하는 임금을 받지 못한다는 것.이날 '무한도전'은 OECD 국가 중 노동시간이 멕시코 다음으로 가장 긴 한국(연 2113시간)의 현실을 상기시킴과 동시에, 삶의 질이 최소한이라도 보장되는 노동환경에 있어야만 국가가 그렇게도 해결하길 원하는 저출생 문제 해법도 찾을 수 있다는 점을 보여줬다.이처럼 '무한도전-국민의원 특집'은 대한민국 국민이라면 고개를 끄덕일 만한 생활 속의 불합리 사례를 이야기함으로써, 공감을 이끌어냈다.1일 방송된 '무한도전'은 11.4%(닐슨코리아, 전국 기준)의 시청률을 기록해 동시간대에 방송되는 KBS '불후의 명곡'(6.2%), SBS '백종원의 3대천왕'(5.9%)를 앞질렀다.한편, '무한도전-국민의원 특집'은 방송 전부터 화제를 모았다.",
+                "score": 0.5469419360160828,
+                "nli_result": {
+                    "confidence": 0.9274,
+                    "label": "neutral"
+                }
+            }
+        ]
+    },
+    "related_articles": "https://www.mk.co.kr/news/business/10707562",
+    "timestamp": "2025-05-19T22:37:43.408668"
+}
+{
+    "claims": {
+        "text": "포괄임금제 진짜 악질임. 야근해도 수당 따로 안 나오고, 그냥 월급에 다 포함됐다고 치니까 회사 맘대로 굴리기 딱 좋음. 실질적으로는 근로자만 손해보는 구조임.",
+        "text_en": "The comprehensive wage system is really evil. Even if you work overtime, you don&#39;t get a separate allowance, and since it&#39;s all included in the monthly salary, it&#39;s perfect for the company to do whatever it wants. In reality, it&#39;s a structure where only the workers suffer.",
+        "keywords": [
+            "포괄임금제",
+            "야근 수당",
+            "고정 OT",
+            "임금 체불",
+            "근로 계약",
+            "노동법"
+        ],
+        "core_sentences": [
+            {
+                "sentence": "따라서 월급 안에 연장근로수당 등이 포함되어 있다는 내용은 아무런 효력이 없으며, 실제로 연장근로 등에 대한 수당을 계산해서 추가로 지급해야 합니다.",
+                "score": 0.6534637212753296,
+                "nli_result": {
+                    "confidence": 0.7996,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "고정OT제도는 포괄임금제도와는 달리 월급 안에 포함되어 있는 고정OT수당까지는 지급한 것으로 인정되며, 이를 초과한 부분에 대해서만 추가로 수당을 산정해서 지급하면 됩니다.",
+                "score": 0.6477195620536804,
+                "nli_result": {
+                    "confidence": 0.913,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "분명히 근로계약서에 “월급 안에는 시간외근로수당 등이 포함되어 있다”고 작성했는데도 불구하고 김과장이 청구한 시간외근로수당을 지급해야 하나요?",
+                "score": 0.6206583380699158,
+                "nli_result": {
+                    "confidence": 0.6679,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "이 때문에 노동자들이 못받은 수당에 대한 전체적인 규모가 추정되지 않는다.",
+                "score": 0.6353157758712769,
+                "nli_result": {
+                    "confidence": 0.8902,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "사용자가 출퇴근 기록을 보관하게 하고 노동자에게 수당의 종류가 적힌 급여명세서를 반드시 교부하도록 입법화해야 한다고 노동계는 주장한다.",
+                "score": 0.6079434156417847,
+                "nli_result": {
+                    "confidence": 0.6951,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "김요한 민주노총 서울본부 노동법률지원센터 노무사는 “연장근로수당의 입법 취지는 추가된 시간에 대한 가산임금을 부과해 사용자가 법정근무시간만 일을 시킬 수 있도록 하게 한 것”이라며 “연장근로수당만 제대로 지급되면 장시간 노동도 상당 부분 극복될 수 있을 것으로 본다”고 말했다.",
+                "score": 0.5863549709320068,
+                "nli_result": {
+                    "confidence": 0.7868,
+                    "label": "contradiction"
+                }
+            },
+            {
+                "sentence": "\n포괄임금·고정OT(이하 ‘포괄임금’)은 판례가 개별 사건에 대해 사후적으로 유효성을 인정하고 있는 임금지급상 관행이다.",
+                "score": 0.5538018345832825,
+                "nli_result": {
+                    "confidence": 0.663,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "\n이정식 장관은 “경직적이고 획일적인 근로시간 제도에 대응하는 과정에서 포괄임금 약정이 널리 활용된 측면이 있다”면서도, “그러나 이를 오남용할 경우 공짜 야근, 장시간근로, 근로시간 산정 회피 등으로 이어지고, 이는 편법·불법·불신의 원인이 된다”고 말했다.",
+                "score": 0.5408852100372314,
+                "nli_result": {
+                    "confidence": 0.784,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "\n장시간근로 감독에서는 포괄임금 오남용 소지, 근로시간 위반, 연차유급휴가 사용상 애로 등을 중점적으로 본다.",
+                "score": 0.5400541424751282,
+                "nli_result": {
+                    "confidence": 0.9032,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "\n\n\n\n\n이에 대해 고용노동부 김민석 차관은 \"포괄임금 자체가 근로기준법상 용어가 아니에, 포괄임금으로 인해 약정 근로시간보다 실제 일을 더 많이 했을 때 돈을 지급하지 않은 것은 임금 체불로 보고 있다\"라며 \"포괄임금 관련해서 크래프톤은 2023년 이후에 신고나 임금체불 사건이 없어 현황을 좀 파악해 보겠다\"라고 말했다.",
+                "score": 0.635520875453949,
+                "nli_result": {
+                    "confidence": 0.866,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "이에 대해 고용노동부 김민석 차관은 \"크래프톤의 세부적인 업무를 봐야겠지만 근로시간 책정이 가능하다고 생각한다\"라며 \"원칙적으로 근로시간 산정이 가능하다면 포괄임금 전제 자체가 '시간 산정이 어렵다'는 것이기에 그렇게 볼 수도 있겠다\"라고 설명했다.",
+                "score": 0.5898568630218506,
+                "nli_result": {
+                    "confidence": 0.7093,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "여기서 고정OT란 회사가 근로자의 연장·야간·휴일근로에 대해 가산수당을 각각 산정해 월 급여에 포함해 지급하는 것이다.",
+                "score": 0.5725879073143005,
+                "nli_result": {
+                    "confidence": 0.8585,
+                    "label": "contradiction"
+                }
+            },
+            {
+                "sentence": "회사에선 일한 시간을 매일 체크해 시간외수당을 준다고 하지만, 제수당으로 뭉뚱그려 나오니 제대로 돈을 받은 건지 알 수가 없다.",
+                "score": 0.7058732509613037,
+                "nli_result": {
+                    "confidence": 0.8437,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "포괄임금제를 도입하진 않았지만 수당 항목이 거의 없는 중소기업도 많다.",
+                "score": 0.6923068165779114,
+                "nli_result": {
+                    "confidence": 0.796,
+                    "label": "contradiction"
+                }
+            },
+            {
+                "sentence": "포괄임금제를 채택하고 있기 때문에 날마다 야근을 해도 추가근로수당은 붙지 않는다.",
+                "score": 0.6769324541091919,
+                "nli_result": {
+                    "confidence": 0.9665,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "제3장 <임금> 파트가 아니라 말이다.포괄임금제는 실제 일한 연장·휴일·야간 노동시간에 대한 수당을 근로기준법에 따라 사후적으로 정산하는 것이 아니라, 이를 이미 정해진 월 급여에 사전 합산하여 지급하는 제도를 가리킨다.",
+                "score": 0.6734177470207214,
+                "nli_result": {
+                    "confidence": 0.9673,
+                    "label": "neutral"
+                }
+            },
+            {
+                "sentence": "법 위반에 대한 불이익이 없기 때문이다.넷마블과 같은 대규모 기업집단이 정교하게 설계된 포괄임금제를 통해 공짜 야근을 강요해도, 그저 시정지시 내리고 체불임금 얼마 청산하면 아무 일도 벌어지지 않게 된다.",
+                "score": 0.6543350219726562,
+                "nli_result": {
+                    "confidence": 0.6821,
+                    "label": "contradiction"
+                }
+            },
+            {
+                "sentence": "매달 똑같은 임금을 지급하는 사용자 입장에서 보면, 시간 외 수당이란 그저 급여 항목 중 하나의 형식적 명칭에 불과할 뿐이다.",
+                "score": 0.6430873870849609,
+                "nli_result": {
+                    "confidence": 0.8208,
+                    "label": "neutral"
+                }
+            }
+        ]
+    },
+    "related_articles": "https://webzine.kacpta.or.kr/news/articleView.html?idxno=20505",
+    "timestamp": "2025-05-19T22:42:55.754198"
+}
