@@ -1,20 +1,27 @@
 from services.data_models import CoreSentence, Claim
 from services.api import extract_keywords, translate_text
 from services.inference import (
+    rank_keywords,
     find_top_k_answers_regex,
     analyze_claim_with_evidence,
 )
 from services.collector import collect_data
-from tools.log_utils import logger
-from typing import List
 import math
 
+from dataclasses import dataclass
+from typing import List, Tuple, Dict
+from tools.log_utils import logger
+
+class Comment:
+    def __init__(self, comment: str):
+        self.comment = comment
+        self.claims = []
 
 class CommentFactCheck:
-    def __init__(self, comment: str):
-        self.comment = comment  # 댓글 원문
-        self.claims = []  # 주장 리스트
-
+    def __init__(self, comment: str, video_ctx: dict | None = None):
+        self.comment = comment
+        self.comment_en = None
+        self.video_ctx = video_ctx or {}
         self.best_article = None
 
     def analyze(self):
@@ -41,22 +48,14 @@ class CommentFactCheck:
     def _get_related_articles(self):
         num_keywords = 6
         articles = []
-
-        while not articles and num_keywords > 0:
-            claims_info = extract_keywords(self.comment, num_keywords)
-            print("[factchecker.py]: extracted claims_info\n", claims_info)
-
-            keyword_list = []
-            for entry in claims_info:
-                # entry는 {"claim": str, "keywords": [str,...]}
-                claim = Claim(entry["claim"], entry["keywords"])
-                keyword_list.extend(entry.get("keywords", []))
-                self.claims.append(claim)
-            print("[factchecker.py]: using keyword_list\n", keyword_list)
-
-            # 3) 평탄화된 키워드 리스트로 기사 스크래핑 시도
-            articles = collect_data(keyword_list)
-            num_keywords -= 1
+        all_keywords = extract_keywords(self.comment, num_keywords)
+        ranked_keywords = rank_keywords(all_keywords, self.video_ctx)
+        for k in range(len(ranked_keywords), 0, -1):
+            keyword_subset = ranked_keywords[:k]  # 상위 k개만 유지
+            print(f"\nkeyword_subset:{keyword_subset}\n")
+            articles = collect_data(keyword_subset)
+            if articles:
+                break
 
         return articles
 

@@ -11,6 +11,19 @@ nli_pipeline = pipeline(
     "text-classification", model="roberta-large-mnli", truncation=True, max_length=512
 )
 
+def rank_keywords(keywords, video_ctx):
+    video_corpus = ". ".join([video_ctx.get("title", "").strip(". "), video_ctx.get("description", "").strip(". "), " ".join(video_ctx.get("hashtags", []))])
+    video_emb = embedding_model.encode(video_corpus, convert_to_tensor=True)
+
+    ranked = []
+    for kw in keywords:
+        kw_emb = embedding_model.encode(kw, convert_to_tensor=True)
+        score = util.cos_sim(kw_emb, video_emb).item()
+        ranked.append((kw, score))
+
+    ranked.sort(key=lambda x: x[1], reverse=True)  # 중요도 높은 순
+    return [kw for kw, _ in ranked]
+
 
 def find_top_k_answers_regex(query, text, k=3):
     """

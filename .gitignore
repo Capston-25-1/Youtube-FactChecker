@@ -4,5 +4,6 @@ test
 .env
 .pyc
 __pycache__
+.pyc
 .jsonl
 logs
