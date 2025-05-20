@@ -49,20 +49,19 @@ async function batchExtract(videoCtx, comments) {
 }
 
 /** 팩트체크 API */
-async function analyze(comment, videoCtx) {
-    console.log("📝 [analyze payload]:", { comment, ...videoCtx });
-
+async function analyze(claim, keywords, videoCtx) {
+    console.log("📝 [analyze payload]:", { claim, keywords, ...videoCtx });
     const resp = await fetch(`${API_BASE}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ comment, ...videoCtx }),
+        body: JSON.stringify({ claim: claim, keyword: keywords, ...videoCtx })
     });
     if (!resp.ok) throw new Error(`status ${resp.status}`);
 
     const data = await resp.json();
     console.log("📝 [analyze result]:", data);
-
-    return resp;
+    
+    return data;
 }
 
 /** 버튼 스타일 & 폰트 한번만 주입 */
@@ -100,25 +99,25 @@ function attachButton(node, videoCtx) {
     btn.className = "api-call-button";
     btn.textContent = "팩트체크";
     btn.addEventListener("click", async () => {
-        console.log("📝 [button click – claims]:", node); //클릭한 댓글 로그 출력
-
         btn.remove();
-
-        // claim 넣는 거에서 comment 넣는거로 변경
-        // 1) 댓글 추출
-        const commentText =
-            node.querySelector("#content-text")?.innerText.trim() || "";
-
-        // 2) analyze 호출
+        const commentText = node.querySelector("#content-text")?.innerText.trim() || "";
+        let batchRes = [];
         try {
-            const result = await analyze(commentText, videoCtx);
-            renderResults(node, [{ claim: commentText, ...result }]);
+            batchRes = await batchExtract(videoCtx, [commentText]);
         } catch (e) {
-            console.error("팩트체크 오류:", e);
-            renderResults(node, [{ claim: commentText, error: true }]);
+            console.error("재추출 오류:", e);
         }
+        // batchRes[0].claims == [{claim, keywords}, ...]
+        const newClaims = (batchRes[0] && batchRes[0].claims) || [];
+        const analyses = await Promise.all(
+            newClaims.map(c =>
+                analyze(c.claim, c.keywords, videoCtx)
+                    .then(data => ({ claim: c.claim, ...data }))
+                    .catch(() => ({ claim: c.claim, error: true }))
+            )
+        );
+        renderResults(node, analyses);
     });
-
     header.appendChild(btn);
     BUTTONED.add(node);
 }
@@ -197,9 +196,9 @@ async function flushQueue() {
     try {
         const results = await batchExtract(videoCtx, comments);
         console.log("[flushQueue] batchExtract results:", results);
-        results.forEach(({ index, keywords }) => {
-            // keywords 배열이 비어있으면 버튼 달지 않음
-            if (keywords && keywords.length) {
+        results.forEach(({ index, claims }) => {
+            // claims 배열이 비어있으면 버튼 달지 않음
+            if (claims && claims.length) {
                 attachButton(nodes[index], videoCtx);
             }
         });
