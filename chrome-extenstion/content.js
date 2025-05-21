@@ -197,8 +197,8 @@ async function flushQueue() {
         const results = await batchExtract(videoCtx, comments);
         console.log("[flushQueue] batchExtract results:", results);
         results.forEach(({ index, claims }) => {
-            // claims 배열이 비어있으면 버튼 달지 않음
-            if (claims && claims.length) {
+            // claims 배열 내에 하나라도 키워드가 있으면 버튼 생성
+            if (claims && claims.some(c => c.keywords && c.keywords.length > 0)) {
                 attachButton(nodes[index], videoCtx);
             }
         });
