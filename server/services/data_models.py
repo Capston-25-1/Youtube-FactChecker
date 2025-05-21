@@ -16,10 +16,10 @@ class CoreSentence:
 
 
 class Claim:
-    def __init__(self, text):
+    def __init__(self, text, keywords):
         self.text = text
         self.text_en = None
-        self.keywords = []
+        self.keywords = keywords
         self.core_sentences = []
 
     def to_dict(self):

@@ -22,6 +22,7 @@ def analyze():
         "hashtags": data.get("hashtags", []),
     }
     keywords = data["keyword"]
+    print(keywords)
     factchecker = CommentFactCheck(claim, keywords, video_ctx)
 
     factchecker.analyze()
