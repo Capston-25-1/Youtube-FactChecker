@@ -50,36 +50,5 @@ def batch_extract():
     return jsonify(results)
 
 
-# get fact-check result for all comemnts
-@app.route("/factcheck", methods=["POST"])
-def analyze_comments():
-    data = request.get_json()
-
-    # 입력 데이터 추출
-    video_url = data.get("video_url")
-    video_title = data.get("video_title")
-    video_tag = data.get("video_tag")
-
-    # get keyword form video information
-    comments = data.get("comments")
-    response = {"data": []}
-    for index, comment in enumerate(comments):
-        fact_result, article_info = analyze_comment(comment)
-
-        explaination = f"'{comment}'에 대한 팩트체크 결과입니다. 신뢰도가 {fact_result * 100:.1f}%입니다."
-        related_articles = [
-            {"title": article_info[0], "link": article_info[1]},
-        ]
-
-        result = {
-            "comment_index": index,
-            "fact_result": fact_result,
-            "explaination": explaination,
-            "related_articles": related_articles,
-        }
-        response["data"].append(result)
-    return jsonify(response)
-
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
