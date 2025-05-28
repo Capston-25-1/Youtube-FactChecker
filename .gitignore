@@ -6,4 +6,6 @@ test
 __pycache__
 .pyc
 .jsonl
+.json
 logs
+cache

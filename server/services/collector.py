@@ -3,25 +3,26 @@ import json
 import hashlib
 from typing import List, Tuple
 from services.api import crawl_article
-from data_models import Article
 
-CACHE_DIR = "cache"
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CACHE_DIR = os.path.join(base_dir, "cache")
+os.makedirs(CACHE_DIR, exist_ok=True)
 
 
 def collect_data(keyword: list[str], pages: int = 1):
     cache_articles = get_cache(keyword)
+    if cache_articles:
+        return cache_articles
     new_article = crawl_article(keyword, pages)
     return new_article
 
 
 def keyword_similarity(keyword1, keyword2):
-    return len(set(keyword1) & set(keyword2))
+    return len(set(keyword1) & set(keyword2)) / min(len(keyword1), len(keyword2))
 
 
 def get_cache_filename(keyword: List[str], pages: int) -> str:
-    if not os.path.exists(CACHE_DIR):
-        os.makedirs(CACHE_DIR)
-    # 캐시 키 생성 (해시로 중복 방지)
+
     key_str = "_".join(keyword) + f"_p{pages}"
     hashed = hashlib.md5(key_str.encode()).hexdigest()
     return os.path.join(CACHE_DIR, f"{hashed}.pkl")

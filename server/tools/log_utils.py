@@ -8,13 +8,12 @@ from services.data_models import Claim, CoreSentence
 class NewsLogger:
     def __init__(self, log_dir: str = "logs"):
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.log_dir = log_dir
-        os.path.join(base_dir, log_dir)
+        self.log_dir = os.path.join(base_dir, log_dir)
         os.makedirs(log_dir, exist_ok=True)
 
-        self.crawl_log_path = os.path.join(log_dir, "news_crawled.jsonl")
-        self.translation_log_path = os.path.join(log_dir, "news_translated.jsonl")
-        self.comment_log_path = os.path.join(log_dir, "comment_analysis.jsonl")
+        self.crawl_log_path = os.path.join(self.log_dir, "news_crawled.jsonl")
+        self.translation_log_path = os.path.join(self.log_dir, "news_translated.jsonl")
+        self.comment_log_path = os.path.join(self.log_dir, "comment_analysis.jsonl")
 
     def _append_jsonl(self, filepath: str, data: Dict):
         data["timestamp"] = datetime.now().isoformat()
