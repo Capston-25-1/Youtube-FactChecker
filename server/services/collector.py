@@ -11,7 +11,7 @@ def collect_data(keyword: list[str], pages: int = 1):
 
     new_article = crawl_article(keyword, pages)
 
-    return
+    return new_article
 
 
 def keyword_similarity(keyword1, keyword2):
