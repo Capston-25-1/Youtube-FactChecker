@@ -1,16 +1,16 @@
 import os
-import pickle
+import json
 import hashlib
 from typing import List, Tuple
 from services.api import crawl_article
+from data_models import Article
 
 CACHE_DIR = "cache"
 
 
 def collect_data(keyword: list[str], pages: int = 1):
-
+    cache_articles = get_cache(keyword)
     new_article = crawl_article(keyword, pages)
-
     return new_article
 
 
@@ -27,22 +27,17 @@ def get_cache_filename(keyword: List[str], pages: int) -> str:
     return os.path.join(CACHE_DIR, f"{hashed}.pkl")
 
 
-def get_articles_with_cache(
-    keyword: List[str], pages: int = 1
-) -> List[Tuple[str, str, str]]:
-    cache_file = get_cache_filename(keyword, pages)
+def get_similar_keywords(keyword):
+    pass
 
-    # 캐시가 있다면 로드
-    if os.path.exists(cache_file):
-        with open(cache_file, "rb") as f:
-            print(f"캐시에서 로드: {keyword}")
-            return pickle.load(f)
 
-    # 없으면 크롤링 후 저장
-    print(f"새로 크롤링: {keyword}")
-    result = craw(keyword, pages)
+def get_cache(keyword):
+    articles = []
+    for file in os.listdir(CACHE_DIR):
+        if keyword_similarity(file, keyword) > 0.8:
+            with open(os.path.join(CACHE_DIR, file), "rb") as f:
+                articles.append(json.loads(f.read()))
 
-    with open(cache_file, "wb") as f:
-        pickle.dump(result, f)
-
-    return result
+    if articles:
+        return articles
+    return None
