@@ -76,19 +76,80 @@ async function analyze(claim, keywords, videoCtx) {
 
     const style = document.createElement("style");
     style.textContent = `
-    .api-call-button{
+    .api-call-button {
       padding:6px 12px;margin-left:8px;border:none;border-radius:999px;
       background:linear-gradient(135deg,#90a4ae,#546e7a);
       color:#dd2121;font-size:15px;font-family:"${fontName}",sans-serif;
       cursor:pointer;transition:background .3s,transform .2s;
       box-shadow:0 2px 5px rgba(0,0,0,.1)
     }
-    .api-call-button:hover{
+    .api-call-button:hover {
       background:linear-gradient(135deg,#78909c,#37474f);transform:scale(1.10)
+    }
+
+    .loading-spinner {
+        display: none;
+        position: relative;
+        width: 15px;
+        height: 15px;
+        margin-left : 25px;
+        border: 2px solid rgba(0, 0, 0, 0.1);
+        border-top: 2px solid rgba(0, 0, 0, 0.6);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    .loading-text {
+        dispaly: none;
+        postiion: relative;
+        margin-left : 6px;
+        color:#dd2121;
+        font-size:15px;
+        font-family:"${fontName}",sans-serif;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
   `;
     document.head.appendChild(style);
 })();
+
+// 로딩 버튼 생성 및 표시
+function createSpinner(selector) {
+    // 로딩 바 생성
+    let spinner = selector.querySelector(".loading-spinner");
+    if (!spinner) {
+        spinner = document.createElement("span");
+        spinner.className = "loading-spinner";
+        selector.appendChild(spinner);
+    }
+    spinner.style.display = "inline-block";
+
+    // 텍스트 생성
+    let text = selector.querySelector(".loading-text");
+    if (!text) {
+        text = document.createElement("span");
+        text.className = "loading-text";
+        text.textContent = "분석 중...";
+        selector.appendChild(text);
+    }
+    text.style.display = "inline-block";
+  }
+
+// 로딩 종료 시 숨김
+function hideSpinner(selector) {
+    const spinner = selector.querySelector(".loading-spinner");
+    if (spinner) {
+        spinner.style.display = "none";
+    }
+
+    const text = selector.querySelector(".loading-text");
+    if (text) {
+        text.style.display = "none";
+    }
+}
 
 /** 댓글 노드에 버튼 달기 */
 function attachButton(node, videoCtx) {
@@ -100,6 +161,7 @@ function attachButton(node, videoCtx) {
     btn.textContent = "팩트체크";
     btn.addEventListener("click", async () => {
         btn.remove();
+        createSpinner(header);
         const commentText = node.querySelector("#content-text")?.innerText.trim() || "";
         let batchRes = [];
         try {
@@ -117,6 +179,7 @@ function attachButton(node, videoCtx) {
             )
         );
         renderResults(node, analyses);
+        hideSpinner(header);
     });
     header.appendChild(btn);
     BUTTONED.add(node);
