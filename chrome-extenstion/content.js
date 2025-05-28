@@ -2,7 +2,15 @@ const API_BASE = "http://localhost:5000";
 const SEEN = new WeakSet();
 const BUTTONED = new WeakSet();
 const FLUSH_DELAY = 500;
-const fontName = "Jua";
+const FONT_NAME = "Jua";
+const CONFIDENCE_LABELS = [
+    { min: 0.0, max: 20.0, label: "🔴🚫 위험"},
+    { min: 20.0, max: 40.0, label: "🟡⚠️ 주의"},
+    { min: 40.0, max: 60.0, label: "⚪❓ 중립"},
+    { min: 60.0, max: 80.0, label: "🟢✅ 안전"},
+    { min: 80.0, max: 100.0, label: "🔵⭕ 확신"}
+  ];
+// -1일 때 "확인 불가" 표시(inference.py에서 검색된 모든 문장 유사도 값 낮은 경우)
 
 let queueNodes = []; // 큐에 쌓인 댓글 노드
 let timerId = null; // 디바운스 타이머
@@ -68,7 +76,7 @@ async function analyze(claim, keywords, videoCtx) {
 (function injectAssets() {
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(
+    link.href = `https://fonts.googleapis.com/css2?family=${FONT_NAME.replace(
         / /g,
         "+"
     )}&display=swap`;
@@ -79,7 +87,7 @@ async function analyze(claim, keywords, videoCtx) {
     .api-call-button {
       padding:6px 12px;margin-left:8px;border:none;border-radius:999px;
       background:linear-gradient(135deg,#90a4ae,#546e7a);
-      color:#dd2121;font-size:15px;font-family:"${fontName}",sans-serif;
+      color:#dd2121;font-size:15px;font-family:"${FONT_NAME}",sans-serif;
       cursor:pointer;transition:background .3s,transform .2s;
       box-shadow:0 2px 5px rgba(0,0,0,.1)
     }
@@ -105,7 +113,7 @@ async function analyze(claim, keywords, videoCtx) {
         margin-left : 6px;
         color:#dd2121;
         font-size:15px;
-        font-family:"${fontName}",sans-serif;
+        font-family:"${FONT_NAME}",sans-serif;
     }
 
     @keyframes spin {
@@ -185,6 +193,11 @@ function attachButton(node, videoCtx) {
     BUTTONED.add(node);
 }
 
+function categorize(x) {
+    const result = CONFIDENCE_LABELS.find(r => x >= r.min && x < r.max || (r.max === 100.0 && x === 100.0));
+    return result ? result.label : "평가 불가";
+  }
+
 /** 결과 DOM 삽입 (복수 처리 버전) */
 function renderResults(node, analyses) {
     let box = node.querySelector(".api-result-container");
@@ -207,9 +220,11 @@ function renderResults(node, analyses) {
         claimEl.style.fontWeight = "bold";
         wrap.appendChild(claimEl);
 
-        // 2) 신뢰도 표시
+        // 2) 신뢰도 구간 표시
+        const confidence = parseFloat((res.fact_result * 100).toFixed(1));
         const fact = document.createElement("div");
-        fact.textContent = `신뢰도: ${(res.fact_result * 100).toFixed(1)}%`;
+        // fact.style.fontFamily = `${FONT_NAME}, sans-serif`;
+        fact.textContent = `분석 결과: ${categorize(confidence)}(${confidence}%)`;
         wrap.appendChild(fact);
 
         // 3) 관련 기사 링크
