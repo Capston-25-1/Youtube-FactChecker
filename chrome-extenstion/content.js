@@ -100,17 +100,14 @@ function attachButton(node, videoCtx) {
     btn.textContent = "팩트체크";
     btn.addEventListener("click", async () => {
         btn.remove();
-        const commentText = node.querySelector("#content-text")?.innerText.trim() || "";
-        let batchRes = [];
-        try {
-            batchRes = await batchExtract(videoCtx, [commentText]);
-        } catch (e) {
-            console.error("재추출 오류:", e);
+        // 버튼 클릭 시, 캐시된 추출 결과를 사용
+        const cachedClaims = node.cachedClaims || [];
+        if (cachedClaims.length === 0) {
+            console.error("캐시된 주장이 없습니다.");
+            return;
         }
-        // batchRes[0].claims == [{claim, keywords}, ...]
-        const newClaims = (batchRes[0] && batchRes[0].claims) || [];
         const analyses = await Promise.all(
-            newClaims.map(c =>
+            cachedClaims.map(c =>
                 analyze(c.claim, c.keywords, videoCtx)
                     .then(data => ({ claim: c.claim, ...data }))
                     .catch(() => ({ claim: c.claim, error: true }))
@@ -197,8 +194,10 @@ async function flushQueue() {
         const results = await batchExtract(videoCtx, comments);
         console.log("[flushQueue] batchExtract results:", results);
         results.forEach(({ index, claims }) => {
-            // claims 배열 내에 하나라도 키워드가 있으면 버튼 생성
+            // claims 배열 내에 하나라도 키워드가 있으면
             if (claims && claims.some(c => c.keywords && c.keywords.length > 0)) {
+                // 캐싱: 이미 추출된 claims를 댓글 노드에 저장
+                nodes[index].cachedClaims = claims;
                 attachButton(nodes[index], videoCtx);
             }
         });
