@@ -11,8 +11,15 @@ nli_pipeline = pipeline(
     "text-classification", model="roberta-large-mnli", truncation=True, max_length=512
 )
 
+
 def rank_keywords(keywords, video_ctx):
-    video_corpus = ". ".join([video_ctx.get("title", "").strip(". "), video_ctx.get("description", "").strip(". "), " ".join(video_ctx.get("hashtags", []))])
+    video_corpus = ". ".join(
+        [
+            video_ctx.get("title", "").strip(". "),
+            video_ctx.get("description", "").strip(". "),
+            " ".join(video_ctx.get("hashtags", [])),
+        ]
+    )
     video_emb = embedding_model.encode(video_corpus, convert_to_tensor=True)
 
     ranked = []
@@ -66,12 +73,6 @@ def find_top_k_answers_regex(query, text, k=3):
     for sentence_score in top_k_sentences_with_scores:
         top_k_scores.append(sentence_score[1])
     print("[inference.py]:", top_k_sentences_with_scores)
-    print(
-        "[inference.py]: found",
-        len(top_k_sentences_with_scores),
-        "sentences with",
-        top_k_scores,
-    )
 
     return top_k_sentences_with_scores
 

@@ -235,3 +235,29 @@ def crawl_article(keyword: list[str], pages: int = 1):
                     continue
     # [(제목1,링크1,본문1), (제목2,링크2,본문2)...]
     return result
+
+
+def translate_text_bulk(texts, target_language="en"):
+    """
+    Google Cloud Translation API를 호출하여 여러 문장을 한 번에 번역합니다.
+    """
+    if not texts:
+        return []
+
+    url = (
+        f"https://translation.googleapis.com/language/translate/v2?key={GOOGLE_API_KEY}"
+    )
+    headers = {"Content-Type": "application/json"}
+    payload = {
+        "q": texts,
+        "target": target_language,
+        "format": "text",
+    }
+
+    response = requests.post(url, headers=headers, json=payload)
+    if response.status_code == 200:
+        data = response.json()
+        return [item["translatedText"] for item in data["data"]["translations"]]
+    else:
+        print("번역 API 오류:", response.status_code)
+        return [None] * len(texts)
