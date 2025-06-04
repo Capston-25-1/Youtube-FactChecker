@@ -32,7 +32,7 @@ def rank_keywords(keywords, video_ctx):
     return [kw for kw, _ in ranked]
 
 
-def find_top_k_answers_regex(query, text, k=3):
+def find_top_k_answers_regex(query, sentences, k=3):
     """
     Finds the top k sentences from a given text that are most similar to a query using cosine similarity of sentence embeddings.
 
@@ -44,12 +44,38 @@ def find_top_k_answers_regex(query, text, k=3):
     Returns:
         list[tuple]: A list of tuples, each containing a sentence and its similarity score, ordered by similarity in descending order.
     """
-    # 문장 분리 (마침표, 물음표, 느낌표 기준으로 분리)
-    sentences = re.split(r"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\!)\s", text)
 
     # 문장 임베딩 생성
     sentence_embeddings = embedding_model.encode(sentences)
 
+    # 질문 임베딩 생성
+    query_embedding = embedding_model.encode(query)
+
+    # 질문과 각 문장 간의 유사도 계산
+    similarities = util.cos_sim(query_embedding, sentence_embeddings)[0]
+
+    # 유사도와 문장 인덱스를 함께 저장
+    sentence_scores = list(zip(sentences, similarities))
+
+    # 유사도 0.5 이상 필터링
+    filtered_sentence_scores = [s for s in sentence_scores if s[1] >= 0.5]
+
+    # 유사도 기준으로 내림차순 정렬
+    filtered_sentence_scores = sorted(
+        filtered_sentence_scores, key=lambda x: x[1], reverse=True
+    )
+
+    # 상위 k개 문장 반환
+    top_k_sentences_with_scores = filtered_sentence_scores[:k]
+    top_k_scores = []
+    for sentence_score in top_k_sentences_with_scores:
+        top_k_scores.append(sentence_score[1])
+    print("[inference.py]:", top_k_sentences_with_scores)
+
+    return top_k_sentences_with_scores, sentence_embeddings
+
+
+def find_top_k_answers_regex_cache(query, sentences, sentence_embeddings, k=3):
     # 질문 임베딩 생성
     query_embedding = embedding_model.encode(query)
 

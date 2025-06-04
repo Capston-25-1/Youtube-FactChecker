@@ -229,7 +229,11 @@ def crawl_article(keyword: list[str], pages: int = 1):
                     article.download()
                     article.parse()
                     body = article.text.strip()
-                    result.append((title, link, body))
+                    # 문장 분리 (마침표, 물음표, 느낌표 기준으로 분리)
+                    sentences = re.split(
+                        r"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\!)\s", body
+                    )
+                    result.append([title, link, sentences, None])
                 except Exception as e:
                     print(f"본문 추출 실패: {link}\n→ {e}")
                     continue

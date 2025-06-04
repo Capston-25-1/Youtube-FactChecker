@@ -3,9 +3,10 @@ from services.api import translate_text, translate_text_bulk
 from services.inference import (
     rank_keywords,
     find_top_k_answers_regex,
+    find_top_k_answers_regex_cache,
     analyze_claim_with_evidence,
 )
-from services.collector import collect_data
+from services.collector import collect_data, cache_articles
 import math
 
 from dataclasses import dataclass
@@ -21,6 +22,7 @@ class CommentFactCheck:
         self.claim = Claim(comment, keywords)
         self.video_ctx = video_ctx or {}
         self.best_article = None
+        self.articles = None
 
     def analyze(self):
         print("[CommentFactCheck] Analyzing comment...\n", self.claim.text)
@@ -84,36 +86,28 @@ class CommentFactCheck:
         core_sentences = []
 
         # 1. 핵심 문장 추출
-        total_extract_start = time.time()
         for article in self.articles:
-            start_extract = time.time()
-            sentences = find_top_k_answers_regex(self.claim.text, article[2])
-            end_extract = time.time()
-            print(
-                f"[문장 추출] {len(sentences)}개 문장 추출 완료: {end_extract - start_extract:.3f}초"
-            )
+            if article[3] is None:
+                sentences, embeddings = find_top_k_answers_regex(
+                    self.claim.text, article[2]
+                )
+                article[3] = embeddings.tolist()
+            else:
+                sentences = find_top_k_answers_regex_cache(
+                    self.claim.text, article[2], article[3]
+                )
 
             for sentence, score in sentences:
                 core_sentences.append(sentence)
                 core_sentence = CoreSentence(sentence, "", score)
                 self.claim.core_sentences.append(core_sentence)
-        total_extract_end = time.time()
-        print(f"[총 추출 시간] {total_extract_end - total_extract_start:.3f}초")
 
         # 2. 문장 번역
-        start_translate = time.time()
         sentences_en = translate_text_bulk(core_sentences)
-        end_translate = time.time()
-        print(
-            f"[번역] 총 {len(sentences_en)}개 문장 번역 완료: {end_translate - start_translate:.3f}초"
-        )
 
         # 3. 번역 결과 저장
-        start_store = time.time()
         for i, core_sentence in enumerate(self.claim.core_sentences):
             core_sentence.sentence_en = sentences_en[i]
-        end_store = time.time()
-        print(f"[저장] 번역 결과 저장 완료: {end_store - start_store:.3f}초")
 
     def _nli_claim_with_core_sentences(self):
         for core_sentence in self.claim.core_sentences:
@@ -158,6 +152,9 @@ class CommentFactCheck:
                 arg_max = i
         article_index = arg_max // 3
         return self.articles[article_index] if self.articles else None
+
+    def cache_result(self):
+        cache_articles(self.claim.keywords, self.articles)
 
     def summary(self):
         return {
