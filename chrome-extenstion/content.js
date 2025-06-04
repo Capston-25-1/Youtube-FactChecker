@@ -3,12 +3,12 @@ const SEEN = new WeakSet();
 const BUTTONED = new WeakSet();
 const FLUSH_DELAY = 500;
 const FONT_NAME = "Jua";
-const CONFIDENCE_LABELS = [
-    { min: 0.0, max: 20.0, label: "🔴🚫 위험"},
-    { min: 20.0, max: 40.0, label: "🟡⚠️ 주의"},
-    { min: 40.0, max: 60.0, label: "⚪❓ 중립"},
-    { min: 60.0, max: 80.0, label: "🟢✅ 안전"},
-    { min: 80.0, max: 100.0, label: "🔵⭕ 확신"}
+const CONFIDENCE_LEVEL = [
+    { min: 0.0, max: 20.0, label: "🔴🚫 위험", description: "신뢰도가 매우 낮아 거짓일 가능성이 큰 문장입니다."},
+    { min: 20.0, max: 40.0, label: "🟡⚠️ 주의", description: "신뢰도가 낮은 편으로 판단에 주의를 요하는 문장입니다"},
+    { min: 40.0, max: 60.0, label: "⚪❓ 중립", description: "중립적으로 사실 여부를 판단하기 어려운 문장입니다."},
+    { min: 60.0, max: 80.0, label: "🟢✅ 안전", description: "신뢰도가 높은 편으로 대체로 사실에 가까운 문장입니다."},
+    { min: 80.0, max: 100.0, label: "🔵⭕ 확신", description: "신뢰도가 매우 높아 사실일 가능성이 큰 문장입니다."}
   ];
 // -1일 때 "확인 불가" 표시(inference.py에서 검색된 모든 문장 유사도 값 낮은 경우)
 
@@ -116,6 +116,36 @@ async function analyze(claim, keywords, videoCtx) {
         font-family:"${FONT_NAME}",sans-serif;
     }
 
+    .tooltip-wrapper {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    }
+
+    .tooltip-wrapper .tooltip {
+    visibility: hidden;
+    width: max-content;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    padding: 6px;
+    border-radius: 4px;
+
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+
+    opacity: 0;
+    transition: opacity 0.3s;
+    }
+
+    .tooltip-wrapper:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+    }
+
     @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
@@ -194,8 +224,8 @@ function attachButton(node, videoCtx) {
 }
 
 function categorize(x) {
-    const result = CONFIDENCE_LABELS.find(r => x >= r.min && x < r.max || (r.max === 100.0 && x === 100.0));
-    return result ? result.label : "평가 불가";
+    const result = CONFIDENCE_LEVEL.find(r => x >= r.min && x < r.max || (r.max === 100.0 && x === 100.0));
+    return result ? result : "평가 불가";
   }
 
 /** 결과 DOM 삽입 (복수 처리 버전) */
@@ -224,8 +254,14 @@ function renderResults(node, analyses) {
         const confidence = parseFloat((res.fact_result * 100).toFixed(1));
         const fact = document.createElement("div");
         // fact.style.fontFamily = `${FONT_NAME}, sans-serif`;
-        fact.textContent = `분석 결과: ${categorize(confidence)}(${confidence}%)`;
+        const category = categorize(confidence);
+        fact.textContent = `분석 결과: ${category.label}(${confidence}%)`;
+        fact.classList.add("tooltip-wrapper");
+        const tooltip = document.createElement("div");
+        tooltip.classList.add("tooltip");
+        tooltip.textContent = `신뢰도 ${category.min}% ~ ${category.max}%: ${category.description}`;
         wrap.appendChild(fact);
+        fact.appendChild(tooltip);
 
         // 3) 관련 기사 링크
         (res.related_articles || []).forEach((a) => {
