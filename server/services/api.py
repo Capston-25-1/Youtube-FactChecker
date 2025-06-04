@@ -5,6 +5,9 @@ import os
 import requests
 import textwrap
 from google.api_core.exceptions import ResourceExhausted
+from newspaper import Article
+from urllib.parse import urlencode
+from bs4 import BeautifulSoup
 
 # gemini-2.5-pro-exp-03-25 할당량 초과 오류로 모델 변경 -> gemini-2.0-flash
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
@@ -12,14 +15,13 @@ model_gemini = genai.GenerativeModel(model_name="gemini-2.0-flash")
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_TRANSLATE_API_KEY")
 
+
 def extract_keywords_batch_llm(comments, video_ctx, n=6):
     title = video_ctx.get("title", "")
-    desc  = video_ctx.get("description", "")
+    desc = video_ctx.get("description", "")
     hashtags = ", ".join(video_ctx.get("hashtags", []))
 
-    comment_block = "\n".join(
-        f'{i}. "{c.strip()}"' for i, c in enumerate(comments)
-    )
+    comment_block = "\n".join(f'{i}. "{c.strip()}"' for i, c in enumerate(comments))
 
     prompt = f"""
 [영상]
@@ -117,11 +119,9 @@ def extract_keywords_batch_llm(comments, video_ctx, n=6):
         print("[extract_keywords_batch_llm] JSON parse error:", e)
         return [{"index": i, "claims": []} for i in range(len(comments))]
 
-    
+
 def extract_keywords(
-    comment_text: str,
-    num_keywords: int,
-    video_ctx: dict | None = None          # ★ 추가
+    comment_text: str, num_keywords: int, video_ctx: dict | None = None  # ★ 추가
 ):
     """
     video_ctx = {
@@ -130,9 +130,9 @@ def extract_keywords(
         "tags": ["...", ...]
     }
     """
-    title        = video_ctx.get("title", "")        if video_ctx else ""
-    description  = video_ctx.get("description", "")  if video_ctx else ""
-    tags         = ", ".join(video_ctx.get("tags", [])) if video_ctx else ""
+    title = video_ctx.get("title", "") if video_ctx else ""
+    description = video_ctx.get("description", "") if video_ctx else ""
+    tags = ", ".join(video_ctx.get("tags", [])) if video_ctx else ""
 
     prompt = f"""
 아래 YouTube 영상 정보와 댓글을 참고해서 기사 검색에 유용한 **핵심 키워드 {num_keywords}개**를 추출해.
@@ -153,9 +153,9 @@ def extract_keywords(
   "topic": ""
 }}
 """
-    response    = model_gemini.generate_content(prompt)
-    raw_output  = response.text
-    cleaned     = re.sub(r"```json|```", "", raw_output).strip()
+    response = model_gemini.generate_content(prompt)
+    raw_output = response.text
+    cleaned = re.sub(r"```json|```", "", raw_output).strip()
 
     try:
         data = json.loads(cleaned)
@@ -184,3 +184,54 @@ def translate_text(text, target_language="en"):
     else:
         print("번역 API 오류:", response.status_code)
         return None
+
+
+def crawl_article(keyword: list[str], pages: int = 1):
+    base_url = "https://www.google.com/search"
+    keyword = " ".join(keyword)
+    params = {"q": keyword, "tbm": "nws"}
+    query = urlencode(params)
+    var_query = "&start={}"
+    query_url = base_url + f"?{query}" + var_query
+
+    # URL 리스트 생성
+    urls = [query_url.format(start) for start in range(0, pages * 10, 10)]
+
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/122.0.0.0 Safari/537.36"
+        )
+    }
+
+    result = []
+
+    for i, url in enumerate(urls):
+        response = requests.get(url, headers=headers)
+        soup = BeautifulSoup(response.text, "html.parser")
+        article = soup.select("div[data-news-doc-id]")
+        if not article:
+            return []
+        for item in article:
+            a_tag = item.select_one("a[href]")
+            title_div = (
+                a_tag.select_one("div[role='heading'][aria-level='3']")
+                if a_tag
+                else None
+            )
+            if a_tag and title_div:
+                title = title_div.get_text(strip=True)
+                link = a_tag["href"]
+                # newspaper3k 사용하여 기사 본문 추출
+                try:
+                    article = Article(link, language="ko")
+                    article.download()
+                    article.parse()
+                    body = article.text.strip()
+                    result.append((title, link, body))
+                except Exception as e:
+                    print(f"본문 추출 실패: {link}\n→ {e}")
+                    continue
+    # [(제목1,링크1,본문1), (제목2,링크2,본문2)...]
+    return result

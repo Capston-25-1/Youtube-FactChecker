@@ -39,7 +39,8 @@ class CommentFactCheck:
         self.score = self._calculate_score()
         self.best_article = self._get_best_article()
         # logger.log_crawled_news("1", "http", self.articles)
-        logger.log_claim_analysis(self.claim, self.articles[0][1])
+        articles = [article[1] for article in self.articles]
+        logger.log_claim_analysis(self.claim, articles)
 
     def _get_related_articles(self):
         articles = []

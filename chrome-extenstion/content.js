@@ -200,8 +200,14 @@ function attachButton(node, videoCtx, claims) {
     btn.addEventListener("click", async () => {
         btn.remove();
         createSpinner(header);
+        // 버튼 클릭 시, 캐시된 추출 결과를 사용
+        const cachedClaims = node.cachedClaims || [];
+        if (cachedClaims.length === 0) {
+            console.error("캐시된 주장이 없습니다.");
+            return;
+        }
         const analyses = await Promise.all(
-            claims.map(c =>
+            cachedClaims.map(c =>
                 analyze(c.claim, c.keywords, videoCtx)
                     .then(data => ({ claim: c.claim, ...data }))
                     .catch(() => ({ claim: c.claim, error: true }))
@@ -302,9 +308,15 @@ async function flushQueue() {
         const results = await batchExtract(videoCtx, comments);
         console.log("[flushQueue] batchExtract results:", results);
         results.forEach(({ index, claims }) => {
-            // claims 배열 내에 하나라도 키워드가 있으면 버튼 생성
+            // claims 배열 내에 하나라도 키워드가 있으면
             if (claims && claims.some(c => c.keywords && c.keywords.length > 0)) {
+<<<<<<< HEAD
                 attachButton(nodes[index], videoCtx, claims);
+=======
+                // 캐싱: 이미 추출된 claims를 댓글 노드에 저장
+                nodes[index].cachedClaims = claims;
+                attachButton(nodes[index], videoCtx);
+>>>>>>> 21fc5786481da362d3b5b885f8a034ea7cab9ab5
             }
         });
     } catch (e) {
