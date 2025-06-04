@@ -80,6 +80,38 @@ def analyze_comments():
         response["data"].append(result)
     return jsonify(response)
 
+@app.route("/test_keywords", methods=["POST"])  //curl.exe -X POST http://localhost:5000/test_keywords 실행
+def test_keywords():
+    video_ctx = {
+        "title": "",
+        "description": "",
+        "hashtags": []
+    }
+    comments = [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+    ]
+
+    results = extract_keywords_batch_llm(comments, video_ctx, n=6)
+    return jsonify(results)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
