@@ -190,7 +190,7 @@ function hideSpinner(selector) {
 }
 
 /** 댓글 노드에 버튼 달기 */
-function attachButton(node, videoCtx) {
+function attachButton(node, videoCtx, claims) {
     if (BUTTONED.has(node)) return;
     const header = node.querySelector("#header-author");
     if (!header) return;
@@ -200,17 +200,8 @@ function attachButton(node, videoCtx) {
     btn.addEventListener("click", async () => {
         btn.remove();
         createSpinner(header);
-        const commentText = node.querySelector("#content-text")?.innerText.trim() || "";
-        let batchRes = [];
-        try {
-            batchRes = await batchExtract(videoCtx, [commentText]);
-        } catch (e) {
-            console.error("재추출 오류:", e);
-        }
-        // batchRes[0].claims == [{claim, keywords}, ...]
-        const newClaims = (batchRes[0] && batchRes[0].claims) || [];
         const analyses = await Promise.all(
-            newClaims.map(c =>
+            claims.map(c =>
                 analyze(c.claim, c.keywords, videoCtx)
                     .then(data => ({ claim: c.claim, ...data }))
                     .catch(() => ({ claim: c.claim, error: true }))
@@ -313,7 +304,7 @@ async function flushQueue() {
         results.forEach(({ index, claims }) => {
             // claims 배열 내에 하나라도 키워드가 있으면 버튼 생성
             if (claims && claims.some(c => c.keywords && c.keywords.length > 0)) {
-                attachButton(nodes[index], videoCtx);
+                attachButton(nodes[index], videoCtx, claims);
             }
         });
     } catch (e) {
