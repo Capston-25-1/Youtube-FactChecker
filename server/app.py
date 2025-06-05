@@ -5,6 +5,8 @@ from services.api import extract_keywords_batch_llm
 from factcheck_engine import CommentFactCheck
 from dotenv import load_dotenv
 
+from threading import Thread
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -37,7 +39,7 @@ def analyze():
         "explaination": explaination,
         "related_articles": related_articles,
     }
-
+    Thread(target=factchecker.cache_result).start()
     return jsonify(response)
 
 
