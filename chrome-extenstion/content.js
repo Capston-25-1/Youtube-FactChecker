@@ -2,7 +2,15 @@ const API_BASE = "http://localhost:5000";
 const SEEN = new WeakSet();
 const BUTTONED = new WeakSet();
 const FLUSH_DELAY = 500;
-const fontName = "Jua";
+const FONT_NAME = "Jua";
+const CONFIDENCE_LEVEL = [
+    { min: 0.0, max: 20.0, label: "🔴🚫 위험", description: "신뢰도가 매우 낮아 거짓일 가능성이 큰 문장입니다."},
+    { min: 20.0, max: 40.0, label: "🟡⚠️ 주의", description: "신뢰도가 낮은 편으로 판단에 주의를 요하는 문장입니다"},
+    { min: 40.0, max: 60.0, label: "⚪❓ 중립", description: "중립적으로 사실 여부를 판단하기 어려운 문장입니다."},
+    { min: 60.0, max: 80.0, label: "🟢✅ 안전", description: "신뢰도가 높은 편으로 대체로 사실에 가까운 문장입니다."},
+    { min: 80.0, max: 100.0, label: "🔵⭕ 확신", description: "신뢰도가 매우 높아 사실일 가능성이 큰 문장입니다."}
+  ];
+// -1일 때 "확인 불가" 표시(inference.py에서 검색된 모든 문장 유사도 값 낮은 경우)
 
 let queueNodes = []; // 큐에 쌓인 댓글 노드
 let timerId = null; // 디바운스 타이머
@@ -68,7 +76,7 @@ async function analyze(claim, keywords, videoCtx) {
 (function injectAssets() {
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(
+    link.href = `https://fonts.googleapis.com/css2?family=${FONT_NAME.replace(
         / /g,
         "+"
     )}&display=swap`;
@@ -76,22 +84,113 @@ async function analyze(claim, keywords, videoCtx) {
 
     const style = document.createElement("style");
     style.textContent = `
-    .api-call-button{
+    .api-call-button {
       padding:6px 12px;margin-left:8px;border:none;border-radius:999px;
       background:linear-gradient(135deg,#90a4ae,#546e7a);
-      color:#dd2121;font-size:15px;font-family:"${fontName}",sans-serif;
+      color:#dd2121;font-size:15px;font-family:"${FONT_NAME}",sans-serif;
       cursor:pointer;transition:background .3s,transform .2s;
       box-shadow:0 2px 5px rgba(0,0,0,.1)
     }
-    .api-call-button:hover{
+    .api-call-button:hover {
       background:linear-gradient(135deg,#78909c,#37474f);transform:scale(1.10)
+    }
+
+    .loading-spinner {
+        display: none;
+        position: relative;
+        width: 15px;
+        height: 15px;
+        margin-left : 25px;
+        border: 2px solid rgba(0, 0, 0, 0.1);
+        border-top: 2px solid rgba(0, 0, 0, 0.6);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    .loading-text {
+        dispaly: none;
+        postiion: relative;
+        margin-left : 6px;
+        color:#dd2121;
+        font-size:15px;
+        font-family:"${FONT_NAME}",sans-serif;
+    }
+
+    .tooltip-wrapper {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    }
+
+    .tooltip-wrapper .tooltip {
+    visibility: hidden;
+    width: max-content;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    padding: 6px;
+    border-radius: 4px;
+
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+
+    opacity: 0;
+    transition: opacity 0.3s;
+    }
+
+    .tooltip-wrapper:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
   `;
     document.head.appendChild(style);
 })();
 
+// 로딩 버튼 생성 및 표시
+function createSpinner(selector) {
+    // 로딩 바 생성
+    let spinner = selector.querySelector(".loading-spinner");
+    if (!spinner) {
+        spinner = document.createElement("span");
+        spinner.className = "loading-spinner";
+        selector.appendChild(spinner);
+    }
+    spinner.style.display = "inline-block";
+
+    // 텍스트 생성
+    let text = selector.querySelector(".loading-text");
+    if (!text) {
+        text = document.createElement("span");
+        text.className = "loading-text";
+        text.textContent = "분석 중...";
+        selector.appendChild(text);
+    }
+    text.style.display = "inline-block";
+  }
+
+// 로딩 종료 시 숨김
+function hideSpinner(selector) {
+    const spinner = selector.querySelector(".loading-spinner");
+    if (spinner) {
+        spinner.style.display = "none";
+    }
+
+    const text = selector.querySelector(".loading-text");
+    if (text) {
+        text.style.display = "none";
+    }
+}
+
 /** 댓글 노드에 버튼 달기 */
-function attachButton(node, videoCtx) {
+function attachButton(node, videoCtx, claims) {
     if (BUTTONED.has(node)) return;
     const header = node.querySelector("#header-author");
     if (!header) return;
@@ -100,27 +199,31 @@ function attachButton(node, videoCtx) {
     btn.textContent = "팩트체크";
     btn.addEventListener("click", async () => {
         btn.remove();
-        const commentText = node.querySelector("#content-text")?.innerText.trim() || "";
-        let batchRes = [];
-        try {
-            batchRes = await batchExtract(videoCtx, [commentText]);
-        } catch (e) {
-            console.error("재추출 오류:", e);
+        createSpinner(header);
+        // 버튼 클릭 시, 캐시된 추출 결과를 사용
+        const cachedClaims = node.cachedClaims || [];
+        if (cachedClaims.length === 0) {
+            console.error("캐시된 주장이 없습니다.");
+            return;
         }
-        // batchRes[0].claims == [{claim, keywords}, ...]
-        const newClaims = (batchRes[0] && batchRes[0].claims) || [];
         const analyses = await Promise.all(
-            newClaims.map(c =>
+            cachedClaims.map(c =>
                 analyze(c.claim, c.keywords, videoCtx)
                     .then(data => ({ claim: c.claim, ...data }))
                     .catch(() => ({ claim: c.claim, error: true }))
             )
         );
         renderResults(node, analyses);
+        hideSpinner(header);
     });
     header.appendChild(btn);
     BUTTONED.add(node);
 }
+
+function categorize(x) {
+    const result = CONFIDENCE_LEVEL.find(r => x >= r.min && x < r.max || (r.max === 100.0 && x === 100.0));
+    return result ? result : "평가 불가";
+  }
 
 /** 결과 DOM 삽입 (복수 처리 버전) */
 function renderResults(node, analyses) {
@@ -144,10 +247,18 @@ function renderResults(node, analyses) {
         claimEl.style.fontWeight = "bold";
         wrap.appendChild(claimEl);
 
-        // 2) 신뢰도 표시
+        // 2) 신뢰도 구간 표시
+        const confidence = parseFloat((res.fact_result * 100).toFixed(1));
         const fact = document.createElement("div");
-        fact.textContent = `신뢰도: ${(res.fact_result * 100).toFixed(1)}%`;
+        // fact.style.fontFamily = `${FONT_NAME}, sans-serif`;
+        const category = categorize(confidence);
+        fact.textContent = `분석 결과: ${category.label}(${confidence}%)`;
+        fact.classList.add("tooltip-wrapper");
+        const tooltip = document.createElement("div");
+        tooltip.classList.add("tooltip");
+        tooltip.textContent = `신뢰도 ${category.min}% ~ ${category.max}%: ${category.description}`;
         wrap.appendChild(fact);
+        fact.appendChild(tooltip);
 
         // 3) 관련 기사 링크
         (res.related_articles || []).forEach((a) => {
@@ -197,9 +308,15 @@ async function flushQueue() {
         const results = await batchExtract(videoCtx, comments);
         console.log("[flushQueue] batchExtract results:", results);
         results.forEach(({ index, claims }) => {
-            // claims 배열 내에 하나라도 키워드가 있으면 버튼 생성
+            // claims 배열 내에 하나라도 키워드가 있으면
             if (claims && claims.some(c => c.keywords && c.keywords.length > 0)) {
+<<<<<<< HEAD
+                attachButton(nodes[index], videoCtx, claims);
+=======
+                // 캐싱: 이미 추출된 claims를 댓글 노드에 저장
+                nodes[index].cachedClaims = claims;
                 attachButton(nodes[index], videoCtx);
+>>>>>>> 21fc5786481da362d3b5b885f8a034ea7cab9ab5
             }
         });
     } catch (e) {
