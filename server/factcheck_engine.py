@@ -23,6 +23,7 @@ class CommentFactCheck:
         self.video_ctx = video_ctx or {}
         self.best_article = None
         self.articles = None
+        self.best_sentence = None
 
     def analyze(self):
         print("[CommentFactCheck] Analyzing comment...\n", self.claim.text)
@@ -150,6 +151,7 @@ class CommentFactCheck:
             if result["confidence"] > max_conf:
                 max_conf = result["confidence"]
                 arg_max = i
+                self.best_sentence = core_sentence.sentence
         article_index = arg_max // 3
         return self.articles[article_index] if self.articles else None
 

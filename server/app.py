@@ -31,7 +31,11 @@ def analyze():
     # fact_result, article_info = analyze_comment(comment)
     explaination = f"'{claim}'에 대한 팩트체크 결과입니다. 신뢰도가 {factchecker.score * 100:.1f}%입니다."
     related_articles = [
-        {"title": factchecker.best_article[0], "link": factchecker.best_article[1]},
+        {
+            "title": factchecker.best_article[0],
+            "link": factchecker.best_article[1],
+            "core_sentence": factchecker.best_sentence,
+        },
     ]
 
     response = {
