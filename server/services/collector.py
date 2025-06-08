@@ -13,6 +13,10 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 def collect_data(keyword: list[str], pages: int = 1):
     cache_candidate = get_best_cache_candidate(keyword)
 
+    if cache_candidate and cache_candidate["similarity"] >= 1.0:
+        print("[collector.py]: 캐시 100% 활용 - 크롤링 생략")
+        return cache_candidate["articles"]
+
     new_articles = crawl_article(keyword, pages)  # [(title, url, body, embedding), ...]
 
     if cache_candidate is None:
