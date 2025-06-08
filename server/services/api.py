@@ -11,6 +11,38 @@ from bs4 import BeautifulSoup
 
 # gemini-2.5-pro-exp-03-25 할당량 초과 오류로 모델 변경 -> gemini-2.0-flash
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+generation_config = {
+    "temperature": 0,
+    "top_p": 1,
+    "top_k": 1,
+    "max_output_tokens": 2048,
+    "candidate_count": 1
+}
+
+safety_settings = [
+    {
+        "category": "HARM_CATEGORY_HARASSMENT",
+        "threshold": "BLOCK_NONE"
+    },
+    {
+        "category": "HARM_CATEGORY_HATE_SPEECH",
+        "threshold": "BLOCK_NONE"
+    },
+    {
+        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+        "threshold": "BLOCK_NONE"
+    },
+    {
+        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+        "threshold": "BLOCK_NONE"
+    },
+]
+
+model_gemini = genai.GenerativeModel(
+    model_name="gemini-2.0-flash",
+    generation_config=generation_config,
+    safety_settings=safety_settings
+)
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_TRANSLATE_API_KEY")
 
