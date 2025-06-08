@@ -116,51 +116,56 @@ def extract_keywords_batch_llm(comments, video_ctx, n=6):
 
 - 지금 까지의 예시는 주제가 다른 영상에도 비슷한 작동 방식으로 적용할 것.
 
-결과를 반드시 다음 JSON 배열 형식으로 결과만 출력해줘:
-[
-  {{
-    "index": 0,             # 댓글 인덱스
-    "claims": [
-      {{
-        "index": 0,         # 댓글 내 주장 인덱스
-        "claim": "...",
-        "keywords": ["...", "..."]
-      }},
-      ...
-    ]
-  }},
-  ...
-]
-"""
-    # 호출 및 예외 처리
+결과를 반드시 다음 JSON 형식으로만 출력:
+{{
+  "video_summary": "영상 요약문",
+  "comments_data": [
+    {{
+      "index": 0,
+      "claims": [
+        {{
+          "index": 0,
+          "claim": "...",
+          "keywords": ["...", "..."]
+        }}
+      ]
+    }}
+  ]
+}}"""
+
     try:
         resp = model_gemini.generate_content(prompt)
-    except ResourceExhausted as e:
-        print("[extract_keywords_batch_llm] Quota exhausted:", e)
-        return [{"index": i, "claims": []} for i in range(len(comments))]
-
-    raw = resp.text.strip()
-    # 코드블록 백틱 및 마크다운 제거
-    if raw.startswith("```"):
-        lines = raw.splitlines()
-        # 첫 백틱 라인 제거
-        if lines and lines[0].startswith("```"):
-            lines = lines[1:]
-        # 마지막 백틱 라인 제거
-        if lines and lines[-1].startswith("```"):
-            lines = lines[:-1]
-        raw = "\n".join(lines)
-    # 마크다운 언어 태그 제거 (예: json)
-    raw = raw.lstrip("json").strip()
-
-    print("[extract_keywords_batch_llm] cleaned raw:", raw)
-
-    try:
-        parsed = json.loads(raw)
-        return parsed
-    except json.JSONDecodeError as e:
-        print("[extract_keywords_batch_llm] JSON parse error:", e)
-        return [{"index": i, "claims": []} for i in range(len(comments))]
+        raw = resp.text.strip()
+        if raw.startswith("```"):
+            lines = raw.splitlines()
+            if lines and lines[0].startswith("```"):
+                lines = lines[1:]
+            if lines and lines[-1].startswith("```"):
+                lines = lines[:-1]
+            raw = "\n".join(lines)
+        raw = raw.lstrip("json").strip()
+        
+        try:
+            parsed = json.loads(raw)
+            result = {
+                "summary": parsed.get("video_summary", ""),
+                "claims": parsed.get("comments_data", [])
+            }
+            print("[extract_keywords_batch_llm]\n", raw)
+            return result
+        except json.JSONDecodeError as e:
+            print("[extract_keywords_batch_llm] JSON parse error:", e)
+            print("[extract_keywords_batch_llm] Failed JSON:", raw)
+            return {
+                "summary": "",
+                "claims": [{"index": i, "claims": []} for i in range(len(comments))]
+            }
+    except Exception as e:
+        print("[extract_keywords_batch_llm] Error:", e)
+        return {
+            "summary": "",
+            "claims": [{"index": i, "claims": []} for i in range(len(comments))]
+        }
 
 
 def extract_keywords(
@@ -243,6 +248,8 @@ def crawl_article(keyword: list[str], pages: int = 1):
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/122.0.0.0 Safari/537.36"
             "AppleWebKit/537.36 (KHTML, like Gecko) "
             "Chrome/122.0.0.0 Safari/537.36"
         )
