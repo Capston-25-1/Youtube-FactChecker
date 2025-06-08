@@ -23,9 +23,10 @@ def analyze():
         "description": data.get("description", ""),
         "hashtags": data.get("hashtags", []),
     }
+    video_summary = data.get("videoSummary", "")
     keywords = data["keyword"]
     print(keywords)
-    factchecker = CommentFactCheck(claim, keywords, video_ctx)
+    factchecker = CommentFactCheck(claim, keywords, video_ctx, video_summary)
 
     factchecker.analyze()
     # fact_result, article_info = analyze_comment(comment)

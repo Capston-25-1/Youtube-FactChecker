@@ -17,10 +17,15 @@ import time
 
 class CommentFactCheck:
     def __init__(
-        self, comment: str, keywords: List[str], video_ctx: dict | None = None
+        self,
+        comment: str,
+        keywords: List[str],
+        video_ctx: dict | None = None,
+        video_summary: str | None = None,
     ):
         self.claim = Claim(comment, keywords)
         self.video_ctx = video_ctx or {}
+        self.video_summary = video_summary
         self.best_article = None
         self.articles = None
         self.best_sentence = None
