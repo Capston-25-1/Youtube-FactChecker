@@ -194,7 +194,7 @@ function hideSpinner(selector) {
 }
 
 /** 댓글 노드에 버튼 달기 */
-function attachButton(node, videoCtx) {
+function attachButton(node, videoCtx, claims) {
     if (BUTTONED.has(node)) return;
     const header = node.querySelector("#header-author");
     if (!header) return;
