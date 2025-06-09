@@ -17,10 +17,15 @@ import time
 
 class CommentFactCheck:
     def __init__(
-        self, comment: str, keywords: List[str], video_ctx: dict | None = None
+        self,
+        comment: str,
+        keywords: List[str],
+        video_ctx: dict | None = None,
+        video_summary: str | None = None,
     ):
         self.claim = Claim(comment, keywords)
         self.video_ctx = video_ctx or {}
+        self.video_summary = video_summary
         self.best_article = None
         self.articles = None
         self.best_sentence = None
@@ -77,6 +82,7 @@ class CommentFactCheck:
             print(f"\nkeyword_subset:{keyword_subset}\n")
             articles = collect_data(keyword_subset)
             if articles:
+                self.claim.keywords_used = keyword_subset
                 break
 
         return articles
@@ -87,7 +93,7 @@ class CommentFactCheck:
         core_sentences = []
 
         # 1. 핵심 문장 추출
-        for article in self.articles:
+        for i, article in enumerate(self.articles):
             if article[3] is None:
                 sentences, embeddings = find_top_k_answers_regex(
                     self.claim.text, article[2]
@@ -101,6 +107,7 @@ class CommentFactCheck:
             for sentence, score in sentences:
                 core_sentences.append(sentence)
                 core_sentence = CoreSentence(sentence, "", score)
+                core_sentence.article_idx = i
                 self.claim.core_sentences.append(core_sentence)
 
         # 2. 문장 번역
@@ -121,39 +128,44 @@ class CommentFactCheck:
 
     def _calculate_score(self):
         score = 0
+        has_result = False
         for core_sentence in self.claim.core_sentences:
             if core_sentence.nli_result["label"] == "entailment":
                 score += (
                     core_sentence.nli_result["confidence"]
                     * core_sentence.similarity_score.item()
                 )
+                has_result = True
             elif core_sentence.nli_result["label"] == "contradiction":
                 score -= (
                     core_sentence.nli_result["confidence"]
                     * core_sentence.similarity_score.item()
                 )
+                has_result = True
+        if not has_result:
+            return -1
         score = self._sharpen_score_sigmoid(
             0.5 + score / (2 * len(self.claim.core_sentences))
             if self.claim.core_sentences
-            else 0.5
+            else -1
         )
         return score
 
-    def _sharpen_score_sigmoid(self, x, sharpness=10):
+    def _sharpen_score_sigmoid(self, x, sharpness=15):
         return 1 / (1 + math.exp(-sharpness * (x - 0.5)))
 
     def _get_best_article(self):
 
         max_conf = -1
         arg_max = 0
-        for i, core_sentence in enumerate(self.claim.core_sentences):
+        for core_sentence in self.claim.core_sentences:
             result = core_sentence.nli_result
-            if result["confidence"] > max_conf:
+            if result["label"] != "neutral" and result["confidence"] > max_conf:
                 max_conf = result["confidence"]
-                arg_max = i
+                arg_max = core_sentence.article_idx
                 self.best_sentence = core_sentence.sentence
-        article_index = arg_max // 3
-        return self.articles[article_index] if self.articles else None
+        article_index = arg_max
+        return self.articles[article_index] if self.articles else self.articles[0]
 
     def cache_result(self):
         cache_articles(self.claim.keywords, self.articles)

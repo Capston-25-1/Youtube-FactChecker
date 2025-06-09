@@ -12,6 +12,7 @@ class CoreSentence:
             "sentence": self.sentence,
             "score": self.similarity_score.item(),
             "nli_result": self.nli_result,
+            "article_idx": self.article_idx,
         }
 
 
@@ -20,6 +21,7 @@ class Claim:
         self.text = text
         self.text_en = None
         self.keywords = keywords
+        self.keywords_used = keywords
         self.core_sentences = []
 
     def to_dict(self):
@@ -30,5 +32,6 @@ class Claim:
             "text": self.text,
             "text_en": self.text_en,
             "keywords": self.keywords,
+            "keywords_used": self.keywords_used,
             "core_sentences": core_sentences,
         }
