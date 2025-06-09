@@ -75,19 +75,23 @@ async function batchExtract(videoCtx, comments) {
         });
         if (!resp.ok) throw new Error(`status ${resp.status}`);
         return await resp.json();
-    } catch (e) {
+            } catch (e) {
         console.error("batch_extract 오류:", e);
-        return [];
+        return {
+            summary: "",
+            claims: []
+        };
     }
 }
 
 /** 팩트체크 API */
-async function analyze(claim, keywords, videoCtx) {
-    console.log("📝 [analyze payload]:", { claim, keywords, ...videoCtx });
+async function analyze(claim, keywords, summary) {
+    console.log("📝 [analyze payload]:", { claim, keywords, summary });
     const resp = await fetch(`${API_BASE}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ claim: claim, keyword: keywords, ...videoCtx }),
+        body: JSON.stringify({claim: claim, keyword: keywords, summary: summary  // 요약문만 전달
+        })
     });
     if (!resp.ok) throw new Error(`status ${resp.status}`);
 
@@ -227,14 +231,17 @@ function attachButton(node, videoCtx, claims) {
         createSpinner(header);
         // 버튼 클릭 시, 캐시된 추출 결과를 사용
         const cachedClaims = node.cachedClaims || [];
+        const cachedSummary = node.cachedSummary || "";
+        
         if (cachedClaims.length === 0) {
             console.error("캐시된 주장이 없습니다.");
             return;
         }
+        // videoCtx 대신 summary 전달
         const analyses = await Promise.all(
-            cachedClaims.map((c) =>
-                analyze(c.claim, c.keywords, videoCtx)
-                    .then((data) => ({ claim: c.claim, ...data }))
+            cachedClaims.map(c =>
+                analyze(c.claim, c.keywords, { summary: cachedSummary })
+                    .then(data => ({ claim: c.claim, ...data }))
                     .catch(() => ({ claim: c.claim, error: true }))
             )
         );
@@ -332,16 +339,16 @@ async function flushQueue() {
     const videoCtx = getVideoContext();
 
     try {
-        const results = await batchExtract(videoCtx, comments);
-        console.log("[flushQueue] batchExtract results:", results);
-        results.forEach(({ index, claims }) => {
-            // claims 배열 내에 하나라도 키워드가 있으면
-            if (
-                claims &&
-                claims.some((c) => c.keywords && c.keywords.length > 0)
-            ) {
-                // 캐싱: 이미 추출된 claims를 댓글 노드에 저장
+        const response = await batchExtract(videoCtx, comments);
+        console.log("[flushQueue] batchExtract results:", response);
+        
+        const { summary, claims } = response;
+        console.log("[flushQueue] Video Summary:", summary);
+        
+        claims.forEach(({ index, claims }) => {
+            if (claims && claims.some(c => c.keywords && c.keywords.length > 0)) {
                 nodes[index].cachedClaims = claims;
+                nodes[index].cachedSummary = summary;
                 attachButton(nodes[index], videoCtx);
             }
         });
