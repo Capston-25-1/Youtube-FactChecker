@@ -185,6 +185,14 @@ async function analyze(claim, keywords, summary) {
 
 // 로딩 버튼 생성 및 표시
 function createSpinner(selector) {
+    const steps = [
+        { message: "주장추출 중...", delay: 3000 },
+        { message: "자료수집 중...", delay: 5000 },
+        { message: "문장추출 중...", delay: 15000 },
+        { message: "팩트체크 중...", delay: 5000 },
+        { message: "신뢰도 계산 중...", delay: 5000 },
+    ];
+
     // 로딩 바 생성
     let spinner = selector.querySelector(".loading-spinner");
     if (!spinner) {
@@ -199,7 +207,15 @@ function createSpinner(selector) {
     if (!text) {
         text = document.createElement("span");
         text.className = "loading-text";
-        text.textContent = "분석 중...";
+        // text.textContent = "분석 중...";
+        let i = 0;
+        function showNext() {
+            if (i >= steps.length) return;
+            text.textContent = steps[i].message;
+            setTimeout(showNext, steps[i].delay);
+            i++;
+        }
+        showNext();
         selector.appendChild(text);
     }
     text.style.display = "inline-block";
@@ -347,6 +363,7 @@ async function flushQueue() {
         
         claims.forEach(({ index, claims }) => {
             if (claims && claims.some(c => c.keywords && c.keywords.length > 0)) {
+                // 캐싱: 이미 추출된 claims를 댓글 노드에 저장
                 nodes[index].cachedClaims = claims;
                 nodes[index].cachedSummary = summary;
                 attachButton(nodes[index], videoCtx);
