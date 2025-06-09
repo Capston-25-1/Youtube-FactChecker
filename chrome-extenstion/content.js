@@ -156,6 +156,14 @@ async function analyze(claim, keywords, videoCtx) {
 
 // 로딩 버튼 생성 및 표시
 function createSpinner(selector) {
+    const steps = [
+        { message: "주장추출 중...", delay: 3000 },
+        { message: "자료수집 중...", delay: 5000 },
+        { message: "문장추출 중...", delay: 15000 },
+        { message: "팩트체크 중...", delay: 5000 },
+        { message: "신뢰도 계산 중...", delay: 5000 },
+    ];
+
     // 로딩 바 생성
     let spinner = selector.querySelector(".loading-spinner");
     if (!spinner) {
@@ -170,7 +178,15 @@ function createSpinner(selector) {
     if (!text) {
         text = document.createElement("span");
         text.className = "loading-text";
-        text.textContent = "분석 중...";
+        // text.textContent = "분석 중...";
+        let i = 0;
+        function showNext() {
+            if (i >= steps.length) return;
+            text.textContent = steps[i].message;
+            setTimeout(showNext, steps[i].delay);
+            i++;
+        }
+        showNext();
         selector.appendChild(text);
     }
     text.style.display = "inline-block";
@@ -310,13 +326,9 @@ async function flushQueue() {
         results.forEach(({ index, claims }) => {
             // claims 배열 내에 하나라도 키워드가 있으면
             if (claims && claims.some(c => c.keywords && c.keywords.length > 0)) {
-<<<<<<< HEAD
-                attachButton(nodes[index], videoCtx, claims);
-=======
                 // 캐싱: 이미 추출된 claims를 댓글 노드에 저장
                 nodes[index].cachedClaims = claims;
                 attachButton(nodes[index], videoCtx);
->>>>>>> 21fc5786481da362d3b5b885f8a034ea7cab9ab5
             }
         });
     } catch (e) {
