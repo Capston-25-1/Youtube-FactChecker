@@ -4,12 +4,37 @@ const BUTTONED = new WeakSet();
 const FLUSH_DELAY = 500;
 const FONT_NAME = "Jua";
 const CONFIDENCE_LEVEL = [
-    { min: 0.0, max: 20.0, label: "🔴🚫 위험", description: "신뢰도가 매우 낮아 거짓일 가능성이 큰 문장입니다."},
-    { min: 20.0, max: 40.0, label: "🟡⚠️ 주의", description: "신뢰도가 낮은 편으로 판단에 주의를 요하는 문장입니다"},
-    { min: 40.0, max: 60.0, label: "⚪❓ 중립", description: "중립적으로 사실 여부를 판단하기 어려운 문장입니다."},
-    { min: 60.0, max: 80.0, label: "🟢✅ 안전", description: "신뢰도가 높은 편으로 대체로 사실에 가까운 문장입니다."},
-    { min: 80.0, max: 100.0, label: "🔵⭕ 확신", description: "신뢰도가 매우 높아 사실일 가능성이 큰 문장입니다."}
-  ];
+    {
+        min: 0.0,
+        max: 20.0,
+        label: "🔴🚫 위험",
+        description: "신뢰도가 매우 낮아 거짓일 가능성이 큰 문장입니다.",
+    },
+    {
+        min: 20.0,
+        max: 40.0,
+        label: "🟡⚠️ 주의",
+        description: "신뢰도가 낮은 편으로 판단에 주의를 요하는 문장입니다",
+    },
+    {
+        min: 40.0,
+        max: 60.0,
+        label: "⚪❓ 중립",
+        description: "중립적으로 사실 여부를 판단하기 어려운 문장입니다.",
+    },
+    {
+        min: 60.0,
+        max: 80.0,
+        label: "🟢✅ 안전",
+        description: "신뢰도가 높은 편으로 대체로 사실에 가까운 문장입니다.",
+    },
+    {
+        min: 80.0,
+        max: 100.0,
+        label: "🔵⭕ 확신",
+        description: "신뢰도가 매우 높아 사실일 가능성이 큰 문장입니다.",
+    },
+];
 // -1일 때 "확인 불가" 표시(inference.py에서 검색된 모든 문장 유사도 값 낮은 경우)
 
 let queueNodes = []; // 큐에 쌓인 댓글 노드
@@ -72,7 +97,7 @@ async function analyze(claim, keywords, summary) {
 
     const data = await resp.json();
     console.log("📝 [analyze result]:", data);
-    
+
     return data;
 }
 
@@ -178,7 +203,7 @@ function createSpinner(selector) {
         selector.appendChild(text);
     }
     text.style.display = "inline-block";
-  }
+}
 
 // 로딩 종료 시 숨김
 function hideSpinner(selector) {
@@ -228,9 +253,11 @@ function attachButton(node, videoCtx, claims) {
 }
 
 function categorize(x) {
-    const result = CONFIDENCE_LEVEL.find(r => x >= r.min && x < r.max || (r.max === 100.0 && x === 100.0));
+    const result = CONFIDENCE_LEVEL.find(
+        (r) => (x >= r.min && x < r.max) || (r.max === 100.0 && x === 100.0)
+    );
     return result ? result : "평가 불가";
-  }
+}
 
 /** 결과 DOM 삽입 (복수 처리 버전) */
 function renderResults(node, analyses) {
