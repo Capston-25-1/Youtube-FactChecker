@@ -76,7 +76,7 @@ class CommentFactCheck:
 
     def _get_related_articles(self):
         articles = []
-        ranked_keywords = rank_keywords(self.claim.keywords, self.video_ctx)
+        ranked_keywords = rank_keywords(self.claim.keywords, self.video_summary)
         for k in range(len(ranked_keywords), 0, -1):
             keyword_subset = ranked_keywords[:k]  # 상위 k개만 유지
             print(f"\nkeyword_subset:{keyword_subset}\n")

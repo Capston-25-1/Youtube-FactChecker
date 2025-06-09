@@ -16,32 +16,20 @@ generation_config = {
     "top_p": 1,
     "top_k": 1,
     "max_output_tokens": 2048,
-    "candidate_count": 1
+    "candidate_count": 1,
 }
 
 safety_settings = [
-    {
-        "category": "HARM_CATEGORY_HARASSMENT",
-        "threshold": "BLOCK_NONE"
-    },
-    {
-        "category": "HARM_CATEGORY_HATE_SPEECH",
-        "threshold": "BLOCK_NONE"
-    },
-    {
-        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-        "threshold": "BLOCK_NONE"
-    },
-    {
-        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-        "threshold": "BLOCK_NONE"
-    },
+    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
 ]
 
 model_gemini = genai.GenerativeModel(
     model_name="gemini-2.0-flash",
     generation_config=generation_config,
-    safety_settings=safety_settings
+    safety_settings=safety_settings,
 )
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_TRANSLATE_API_KEY")
@@ -144,12 +132,12 @@ def extract_keywords_batch_llm(comments, video_ctx, n=6):
                 lines = lines[:-1]
             raw = "\n".join(lines)
         raw = raw.lstrip("json").strip()
-        
+
         try:
             parsed = json.loads(raw)
             result = {
                 "summary": parsed.get("video_summary", ""),
-                "claims": parsed.get("comments_data", [])
+                "claims": parsed.get("comments_data", []),
             }
             print("[extract_keywords_batch_llm]\n", raw)
             return result
@@ -158,13 +146,13 @@ def extract_keywords_batch_llm(comments, video_ctx, n=6):
             print("[extract_keywords_batch_llm] Failed JSON:", raw)
             return {
                 "summary": "",
-                "claims": [{"index": i, "claims": []} for i in range(len(comments))]
+                "claims": [{"index": i, "claims": []} for i in range(len(comments))],
             }
     except Exception as e:
         print("[extract_keywords_batch_llm] Error:", e)
         return {
             "summary": "",
-            "claims": [{"index": i, "claims": []} for i in range(len(comments))]
+            "claims": [{"index": i, "claims": []} for i in range(len(comments))],
         }
 
 
@@ -283,7 +271,9 @@ def crawl_article(keyword: list[str], pages: int = 1):
                     # sentences = re.split(
                     #     r"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\!)\s", body
                     # )
-                    sentences = [s for s in body.split(".") if s]
+                    sentences = [s for s in body.split(".") if s.strip()]
+                    if len(sentences) == 0:
+                        sentences = [""]
                     result.append([title, link, sentences, None])
                 except Exception as e:
                     print(f"본문 추출 실패: {link}\n→ {e}")

@@ -12,15 +12,8 @@ nli_pipeline = pipeline(
 )
 
 
-def rank_keywords(keywords, video_ctx):
-    video_corpus = ". ".join(
-        [
-            video_ctx.get("title", "").strip(". "),
-            video_ctx.get("description", "").strip(". "),
-            " ".join(video_ctx.get("hashtags", [])),
-        ]
-    )
-    video_emb = embedding_model.encode(video_corpus, convert_to_tensor=True)
+def rank_keywords(keywords, video_summary):
+    video_emb = embedding_model.encode(video_summary, convert_to_tensor=True)
 
     ranked = []
     for kw in keywords:
@@ -44,7 +37,6 @@ def find_top_k_answers_regex(query, sentences, k=3):
     Returns:
         list[tuple]: A list of tuples, each containing a sentence and its similarity score, ordered by similarity in descending order.
     """
-
     # 문장 임베딩 생성
     sentence_embeddings = embedding_model.encode(sentences)
 
