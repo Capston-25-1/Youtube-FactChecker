@@ -5,6 +5,12 @@ const FLUSH_DELAY = 500;
 const FONT_NAME = "Jua";
 const CONFIDENCE_LEVEL = [
     {
+        min: -100,
+        max: -99,
+        label: "🔴🔴 확인 불가",
+        description: "팩트체크가 불가능한 주장입니다.",
+    },
+    {
         min: 0.0,
         max: 20.0,
         label: "🔴🚫 위험",
@@ -311,17 +317,26 @@ function renderResults(node, analyses) {
         wrap.appendChild(claimEl);
 
         // 2) 신뢰도 구간 표시
-        const confidence = parseFloat((res.fact_result * 100).toFixed(1));
         const fact = document.createElement("div");
-        // fact.style.fontFamily = `${FONT_NAME}, sans-serif`;
-        const category = categorize(confidence);
-        fact.textContent = `분석 결과: ${category.label}(${confidence}%)`;
-        fact.classList.add("tooltip-wrapper");
-        const tooltip = document.createElement("div");
-        tooltip.classList.add("tooltip");
-        tooltip.textContent = `신뢰도 ${category.min}% ~ ${category.max}%: ${category.description}`;
+        const confidence = parseFloat((res.fact_result * 100).toFixed(1));
+        if (confidence === -100) {
+            const category = categorize(confidence);
+            fact.textContent = `분석 결과: ${category.label}(${confidence}%)`;
+            fact.classList.add("tooltip-wrapper");
+            const tooltip = document.createElement("div");
+            tooltip.classList.add("tooltip");
+            tooltip.textContent = `신뢰도 확인불가: ${category.description}`;
+            fact.appendChild(tooltip);
+        } else {
+            const category = categorize(confidence);
+            fact.textContent = `분석 결과: ${category.label}(${confidence}%)`;
+            fact.classList.add("tooltip-wrapper");
+            const tooltip = document.createElement("div");
+            tooltip.classList.add("tooltip");
+            tooltip.textContent = `신뢰도 ${category.min}% ~ ${category.max}%: ${category.description}`;
+            fact.appendChild(tooltip);
+        }
         wrap.appendChild(fact);
-        fact.appendChild(tooltip);
 
         // 3) 관련 기사 링크
         (res.related_articles || []).forEach((a) => {
